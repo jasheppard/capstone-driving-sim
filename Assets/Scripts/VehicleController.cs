@@ -17,30 +17,38 @@ public class VehicleController : MonoBehaviour
     public float maxSpeed = 60f;
 
     private Rigidbody rb;
+    private float accelerateInput;
+    private float steerInput;
+    private bool brakingInput;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.centerOfMass = new Vector3(0, -1.5f, 0);
+        rb.centerOfMass = new Vector3(0, -1.0f, 0);
+        rb.drag = 0.1f;
+        rb.angularDrag = 0.5f;
     }
 
     void Update()
     {
+        accelerateInput = Input.GetAxis("Vertical");
+        steerInput = Input.GetAxis("Horizontal");
+        brakingInput = Input.GetKey(KeyCode.Space);
+    }
+
+    void FixedUpdate()
+    {
         float speed = rb.velocity.magnitude * 3.6f;
 
-        float accelerate = Input.GetAxis("Vertical");
-        float steer = Input.GetAxis("Horizontal");
-        bool braking = Input.GetKey(KeyCode.Space);
-
         // Steering
-        wheelFL.steerAngle = maxSteerAngle * steer;
-        wheelFR.steerAngle = maxSteerAngle * steer;
+        wheelFL.steerAngle = maxSteerAngle * steerInput;
+        wheelFR.steerAngle = maxSteerAngle * steerInput;
 
         // Motor
-        if (speed < maxSpeed && !braking)
+        if (speed < maxSpeed && !brakingInput)
         {
-            wheelRL.motorTorque = motorTorque * accelerate;
-            wheelRR.motorTorque = motorTorque * accelerate;
+            wheelRL.motorTorque = motorTorque * accelerateInput;
+            wheelRR.motorTorque = motorTorque * accelerateInput;
         }
         else
         {
@@ -49,7 +57,7 @@ public class VehicleController : MonoBehaviour
         }
 
         // Braking
-        if (braking)
+        if (brakingInput)
         {
             wheelFL.brakeTorque = brakeTorque;
             wheelFR.brakeTorque = brakeTorque;
