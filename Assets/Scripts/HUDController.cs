@@ -29,10 +29,13 @@ public class HUDController : MonoBehaviour
     }
 
     void UpdateSpeedometer()
+{
+    VehicleController vc = carRigidbody.GetComponent<VehicleController>();
+    if (vc != null)
     {
-        float speed = carRigidbody.velocity.magnitude * 2.237f;
-        speedometerText.text = Mathf.RoundToInt(speed) + " mph";
+        speedometerText.text = Mathf.RoundToInt(vc.GetSpeedMPH()) + " mph";
     }
+}
 
     void UpdateInstructionCard()
     {
@@ -75,4 +78,9 @@ public class HUDController : MonoBehaviour
         int seconds = Mathf.FloorToInt(timeRemaining % 60);
         timerText.text = minutes + ":" + seconds.ToString("00");
     }
+
+    public void UpdateSpeedLimit(float newLimit)
+{
+    speedLimitText.text = "Speed Limit: " + newLimit + " mph";
+}
 }

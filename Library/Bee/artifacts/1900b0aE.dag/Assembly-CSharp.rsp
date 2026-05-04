@@ -365,6 +365,7 @@
 "Assets/Scripts/ResultsScreen.cs"
 "Assets/Scripts/SaveSystem.cs"
 "Assets/Scripts/ScenarioManager.cs"
+"Assets/Scripts/SpeedZoneTrigger.cs"
 "Assets/Scripts/StopZoneTrigger.cs"
 "Assets/Scripts/VehicleController.cs"
 "Assets/TextMesh Pro/Examples & Extras/Scripts/Benchmark01.cs"

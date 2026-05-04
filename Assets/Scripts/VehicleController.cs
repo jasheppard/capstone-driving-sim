@@ -1,75 +1,64 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class VehicleController : MonoBehaviour
 {
-    [Header("Wheel Colliders")]
-    public WheelCollider wheelFL;
-    public WheelCollider wheelFR;
-    public WheelCollider wheelRL;
-    public WheelCollider wheelRR;
-
     [Header("Car Settings")]
-    public float motorTorque = 400f;
-    public float brakeTorque = 3000f;
-    public float maxSteerAngle = 35f;
-    public float maxSpeed = 60f;
+    public float accelerationForce = 15000f;
+    public float reverseForce = 8000f;
+    public float turnSpeed = 60f;
+    public float maxSpeed = 30f;
 
     private Rigidbody rb;
-    private float accelerateInput;
-    private float steerInput;
-    private bool brakingInput;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        rb.centerOfMass = new Vector3(0, -1.0f, 0);
-        rb.drag = 0.1f;
-        rb.angularDrag = 0.5f;
-    }
-
-    void Update()
-    {
-        accelerateInput = Input.GetAxis("Vertical");
-        steerInput = Input.GetAxis("Horizontal");
-        brakingInput = Input.GetKey(KeyCode.Space);
+        rb.drag = 1f;
+        rb.angularDrag = 5f;
+        rb.centerOfMass = new Vector3(0, -0.5f, 0);
     }
 
     void FixedUpdate()
     {
-        float speed = rb.velocity.magnitude * 3.6f;
+        float currentSpeed = rb.velocity.magnitude * 2.237f;
+
+        // Forward
+        if (Input.GetKey(KeyCode.W) && currentSpeed < maxSpeed)
+        {
+            rb.AddForce(transform.forward * accelerationForce, ForceMode.Force);
+        }
+
+        // Reverse
+        if (Input.GetKey(KeyCode.S))
+        {
+            rb.AddForce(-transform.forward * reverseForce, ForceMode.Force);
+        }
 
         // Steering
-        wheelFL.steerAngle = maxSteerAngle * steerInput;
-        wheelFR.steerAngle = maxSteerAngle * steerInput;
-
-        // Motor
-        if (speed < maxSpeed && !brakingInput)
+        if (currentSpeed > 1f)
         {
-            wheelRL.motorTorque = motorTorque * accelerateInput;
-            wheelRR.motorTorque = motorTorque * accelerateInput;
-        }
-        else
-        {
-            wheelRL.motorTorque = 0;
-            wheelRR.motorTorque = 0;
+            if (Input.GetKey(KeyCode.A))
+            {
+                transform.Rotate(0, -turnSpeed * Time.fixedDeltaTime, 0);
+            }
+            if (Input.GetKey(KeyCode.D))
+            {
+                transform.Rotate(0, turnSpeed * Time.fixedDeltaTime, 0);
+            }
         }
 
-        // Braking
-        if (brakingInput)
+        // Brake
+        if (Input.GetKey(KeyCode.Space))
         {
-            wheelFL.brakeTorque = brakeTorque;
-            wheelFR.brakeTorque = brakeTorque;
-            wheelRL.brakeTorque = brakeTorque;
-            wheelRR.brakeTorque = brakeTorque;
+            rb.velocity = Vector3.Lerp(rb.velocity, Vector3.zero, 0.2f);
         }
-        else
-        {
-            wheelFL.brakeTorque = 0;
-            wheelFR.brakeTorque = 0;
-            wheelRL.brakeTorque = 0;
-            wheelRR.brakeTorque = 0;
-        }
+
+        // Keep grounded
+        rb.AddForce(Vector3.down * 20f, ForceMode.Acceleration);
+    }
+
+    public float GetSpeedMPH()
+    {
+        return rb.velocity.magnitude * 2.237f;
     }
 }

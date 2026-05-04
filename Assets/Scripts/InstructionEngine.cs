@@ -94,4 +94,9 @@ public class InstructionEngine : MonoBehaviour
         infractionCount = 0;
         speedWarningTimer = 0;
     }
+    public void SetSpeedLimit(float newLimit)
+{
+    speedLimitMPH = newLimit;
+    hud.UpdateSpeedLimit(newLimit);
+}
 }
