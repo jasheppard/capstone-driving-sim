@@ -1,0 +1,7 @@
+{
+  "waypoints": [
+    { "kind": "Checkpoint", "x": -637.373, "y": -3.401, "z": -273.103, "radius": 12.000, "speedLimitMph": 20.000 },
+    { "kind": "BusStop", "x": -637.080, "y": -4.207, "z": -277.152, "radius": 12.000, "speedLimitMph": 20.000 },
+    { "kind": "BusStop", "x": 85.142, "y": -8.790, "z": -2.709, "radius": 12.000, "speedLimitMph": 20.000 }
+  ]
+}
