@@ -60,7 +60,7 @@ public class Speedometer : MonoBehaviour
 
         if (vehicle == null)
         {
-            Debug.LogError("[Speedometer] No VehicleController in the scene — " +
+            Debug.LogError("[Speedometer] No VehicleController in the scene: " +
                            "nothing to read a speed from.");
             enabled = false;
             return;

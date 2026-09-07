@@ -94,7 +94,7 @@ public class CarGroundSpawner : MonoBehaviour
 
         if (transform.position.y < lastSafePoint.y - fallLimit)
         {
-            Debug.LogWarning("[CarGroundSpawner] Fell through the world — respawning.");
+            Debug.LogWarning("[CarGroundSpawner] Fell through the world: respawning.");
             Respawn();
         }
     }

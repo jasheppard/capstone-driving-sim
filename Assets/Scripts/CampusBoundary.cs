@@ -53,7 +53,7 @@ public class CampusBoundary : MonoBehaviour
             anchor.transform.position = transform.position;
             centre = anchor.transform;
 
-            Debug.LogWarning("[CampusBoundary] No centre assigned — using the car's " +
+            Debug.LogWarning("[CampusBoundary] No centre assigned: using the car's " +
                              "start position. Set one for a stable boundary.");
         }
 

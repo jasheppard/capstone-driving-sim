@@ -42,7 +42,7 @@ public static class TelemetrySetup
         Debug.Log(
             "Telemetry ready.\n" +
             "  Press Play, drive for a few minutes, then press Stop.\n" +
-            "  Stopping is what closes the file — the CSV is incomplete until you do.\n" +
+            "  Stopping is what closes the file: the CSV is incomplete until you do.\n" +
             "  Find it with NCAT → Open Telemetry Folder.\n" +
             "Remember to save the scene (Ctrl+S), or the component will not be there next time.");
     }

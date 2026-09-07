@@ -38,7 +38,7 @@ public class RouteRunner : MonoBehaviour
     public Transform vehicle;
 
     [Header("Rules")]
-    [Tooltip("At or below this speed the bus counts as stopped, in mph. Not zero — " +
+    [Tooltip("At or below this speed the bus counts as stopped, in mph. Not zero: " +
              "a Rigidbody on scanned terrain never sits at exactly zero.")]
     public float stoppedSpeedMph = 1.5f;
 
@@ -208,13 +208,13 @@ public class RouteRunner : MonoBehaviour
         switch (target.kind)
         {
             case RouteWaypoint.Kind.StopSign:
-                Alert("STOP SIGN — come to a full stop");
+                Alert("STOP SIGN: come to a full stop");
                 break;
             case RouteWaypoint.Kind.Crosswalk:
-                Alert("CROSSWALK — yield to pedestrians");
+                Alert("CROSSWALK: yield to pedestrians");
                 break;
             case RouteWaypoint.Kind.BusStop:
-                Alert("BUS STOP — stop for boarding");
+                Alert("BUS STOP: stop for boarding");
                 break;
         }
     }
@@ -236,7 +236,7 @@ public class RouteRunner : MonoBehaviour
                 if (stoppedFor >= stopHoldSeconds && !stopSatisfied)
                 {
                     stopSatisfied = true;
-                    Alert("Stop complete — proceed when clear");
+                    Alert("Stop complete: proceed when clear");
                 }
                 break;
 
@@ -306,7 +306,7 @@ public class RouteRunner : MonoBehaviour
                     break;
 
                 case RouteWaypoint.Kind.BusStop:
-                    if (!stopSatisfied) Alert("Missed the stop — passengers left behind");
+                    if (!stopSatisfied) Alert("Missed the stop: passengers left behind");
                     break;
             }
         }
@@ -338,7 +338,7 @@ public class RouteRunner : MonoBehaviour
         RouteComplete = true;
         Alert("ROUTE COMPLETE");
 
-        Debug.Log("[RouteRunner] Route complete — " + WaypointsReached + "/" +
+        Debug.Log("[RouteRunner] Route complete: " + WaypointsReached + "/" +
                   waypoints.Count + " waypoints, " + PassengersCarried + " passengers.");
 
         if (debrief != null) debrief.EndDrive();

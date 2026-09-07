@@ -22,7 +22,7 @@ using System.Reflection;
 public class CesiumLoadingScreen : MonoBehaviour
 {
     [Header("When to let the player drive")]
-    [Tooltip("Percentage of the view that must be loaded. 100 is a bad idea — the " +
+    [Tooltip("Percentage of the view that must be loaded. 100 is a bad idea: the " +
              "last few tiles can take a while and are usually far away.")]
     [Range(50f, 100f)] public float requiredProgress = 92f;
 
@@ -77,7 +77,7 @@ public class CesiumLoadingScreen : MonoBehaviour
 
         if (tileset == null)
         {
-            Debug.LogWarning("[LoadingScreen] No Cesium3DTileset found — dismissing " +
+            Debug.LogWarning("[LoadingScreen] No Cesium3DTileset found: dismissing " +
                              "immediately, since there is nothing to wait for.");
             Finish();
         }
@@ -96,7 +96,7 @@ public class CesiumLoadingScreen : MonoBehaviour
             if (computeProgress == null)
             {
                 Debug.LogWarning("[LoadingScreen] Cesium3DTileset has no " +
-                                 "ComputeLoadProgress() in this version — the screen " +
+                                 "ComputeLoadProgress() in this version: the screen " +
                                  "will fall back to a fixed wait.");
             }
 
@@ -128,7 +128,7 @@ public class CesiumLoadingScreen : MonoBehaviour
 
         if (timedOut && !loaded)
             Debug.LogWarning("[LoadingScreen] Gave up after " + timeoutSeconds +
-                             "s at " + Mathf.RoundToInt(progress) + "% — check the " +
+                             "s at " + Mathf.RoundToInt(progress) + "%: check the " +
                              "network, or the Cesium ion token.");
 
         if (loaded || timedOut) Finish();

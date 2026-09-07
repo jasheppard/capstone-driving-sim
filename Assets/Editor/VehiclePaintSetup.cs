@@ -58,7 +58,7 @@ public static class VehiclePaintSetup
         AssetDatabase.SaveAssets();
 
         Debug.Log(painted > 0
-            ? "Painted " + painted + " material(s). Tweak any of them in Assets/.../Materials — " +
+            ? "Painted " + painted + " material(s). Tweak any of them in Assets/.../Materials: " +
               "Base Map colour, Metallic and Smoothness are the three that matter."
             : "No editable materials found. If they are embedded in the FBX, set " +
               "Material Location to 'Use External Materials' on the model importer first.");

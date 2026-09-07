@@ -64,7 +64,7 @@ public class DebriefScreen : MonoBehaviour
         route = FindObjectOfType<RouteRunner>();      // optional — free driving has none
 
         if (scorer == null)
-            Debug.LogError("[DebriefScreen] No DriveScorer in the scene — " +
+            Debug.LogError("[DebriefScreen] No DriveScorer in the scene: " +
                            "run NCAT → Set Up Drive Debrief.");
 
         if (panel != null) panel.SetActive(false);
@@ -94,7 +94,7 @@ public class DebriefScreen : MonoBehaviour
         if (scorer.DurationSeconds < minimumDriveSeconds)
         {
             Debug.Log("[DebriefScreen] Only " + scorer.DurationSeconds.ToString("F0") +
-                      "s driven — drive for at least " + minimumDriveSeconds +
+                      "s driven: drive for at least " + minimumDriveSeconds +
                       "s before ending, or the rates are meaningless.");
             return;
         }

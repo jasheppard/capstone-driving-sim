@@ -59,7 +59,7 @@ public class DriveScorer : MonoBehaviour
              "in metres.")]
     public float nearMissDistance = 2.5f;
 
-    [Tooltip("Below this speed, passing close to someone is not a near miss — it " +
+    [Tooltip("Below this speed, passing close to someone is not a near miss: it " +
              "is just parking near them.")]
     public float nearMissMinSpeedMph = 8f;
 
@@ -394,7 +394,7 @@ public class DriveScorer : MonoBehaviour
 
         Score = Mathf.Clamp(Mathf.RoundToInt(100f - deductions), 0, 100);
 
-        if (Score >= 90) { Grade = "A"; Verdict = "Excellent — safe, controlled driving throughout."; }
+        if (Score >= 90) { Grade = "A"; Verdict = "Excellent. Safe, controlled driving throughout."; }
         else if (Score >= 80) { Grade = "B"; Verdict = "Good. A few lapses worth reviewing below."; }
         else if (Score >= 70) { Grade = "C"; Verdict = "Acceptable, but several unsafe moments."; }
         else if (Score >= 60) { Grade = "D"; Verdict = "Unsafe driving. Review the events below."; }
@@ -422,7 +422,7 @@ public class DriveScorer : MonoBehaviour
             string path = Path.Combine(folder, "drive_report_" + stamp + ".txt");
 
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("NC A&T Campus Driving Safety Simulator — Drive Report");
+            sb.AppendLine("NC A&T Campus Driving Safety Simulator: Drive Report");
             sb.AppendLine("Generated " + System.DateTime.Now.ToString("f"));
             sb.AppendLine(new string('-', 58));
             sb.AppendLine();

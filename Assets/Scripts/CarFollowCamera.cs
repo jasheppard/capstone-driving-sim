@@ -56,7 +56,7 @@ public class CarFollowCamera : MonoBehaviour
     public float recentreSpeed = 3f;
 
     [Tooltip("How quickly the camera swings to a new orbit angle. Only affects rotation " +
-             "around the car — the camera tracks the car's position exactly, with no lag.")]
+             "around the car: the camera tracks the car's position exactly, with no lag.")]
     public float orbitSmoothing = 12f;
 
     [Header("Look")]
@@ -109,7 +109,7 @@ public class CarFollowCamera : MonoBehaviour
             other.gameObject.SetActive(false);
             disabled++;
             Debug.Log("[CarFollowCamera] Disabled \"" + other.name +
-                      "\" for this play session — it was competing for the view and for input.");
+                      "\" for this play session: it was competing for the view and for input.");
         }
 
         gameObject.tag = "MainCamera";      // Cesium streams tiles for this tag in Play mode

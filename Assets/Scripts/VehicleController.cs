@@ -52,7 +52,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class VehicleController : MonoBehaviour
 {
-    [Header("Vehicle — 35 ft transit bus")]
+    [Header("Vehicle: 35 ft transit bus")]
     [Tooltip("Kerb weight plus a light passenger load, in kg. A 35-40 ft transit " +
              "bus is 12,000-15,000 kg; a sedan is about 1,500.")]
     public float massKg = 13000f;
@@ -76,7 +76,7 @@ public class VehicleController : MonoBehaviour
     [Range(0.2f, 1f)] public float driveAxleLoad = 0.6f;
 
     [Tooltip("Governed top speed in mph. Transit buses are limited well below what " +
-             "the engine could manage — without this it would reach about 78.")]
+             "the engine could manage: without this it would reach about 78.")]
     public float governedTopSpeedMph = 65f;
 
     [Tooltip("Top speed in reverse, mph.")]
@@ -113,7 +113,7 @@ public class VehicleController : MonoBehaviour
     public float steerCutoffSpeed = 0.5f;
 
     [Header("Orientation")]
-    [Tooltip("Tick this if W drives the vehicle backwards — flips which way the " +
+    [Tooltip("Tick this if W drives the vehicle backwards: flips which way the " +
              "body counts as forward.")]
     public bool invertForward = false;
 
@@ -126,10 +126,10 @@ public class VehicleController : MonoBehaviour
 
     [Header("Stability")]
     [Tooltip("Locks the vehicle upright. Strongly recommended on photogrammetry " +
-             "terrain — without it a kerb or a mesh seam will flip you.")]
+             "terrain: without it a kerb or a mesh seam will flip you.")]
     public bool keepUpright = true;
 
-    [Tooltip("Extra downward acceleration to keep it planted. Keep this low — " +
+    [Tooltip("Extra downward acceleration to keep it planted. Keep this low: " +
              "pressing a box hard into scanned terrain makes it snag on every bump.")]
     public float groundStick = 5f;
 

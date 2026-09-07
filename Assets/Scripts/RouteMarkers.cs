@@ -82,7 +82,7 @@ public class RouteMarkers : MonoBehaviour
 
         if (runner == null)
         {
-            Debug.LogWarning("[RouteMarkers] No RouteRunner in the scene — nothing to mark.");
+            Debug.LogWarning("[RouteMarkers] No RouteRunner in the scene: nothing to mark.");
             enabled = false;
             return;
         }

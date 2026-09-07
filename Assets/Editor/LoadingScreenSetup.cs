@@ -94,7 +94,7 @@ public static class LoadingScreenSetup
 
         Text hint = AddText(screen, "Hint", 14, FontStyle.Italic,
                             new Vector2(0f, -190f), new Vector2(1000f, 26f));
-        hint.text = "Terrain streams from Google Photorealistic 3D Tiles — " +
+        hint.text = "Terrain streams from Google Photorealistic 3D Tiles: " +
                     "first load depends on your connection";
         hint.color = new Color(0.40f, 0.44f, 0.50f);
 
@@ -138,7 +138,7 @@ public static class LoadingScreenSetup
 
         if (tileset == null)
         {
-            Debug.LogWarning("No Cesium3DTileset in the scene — skipped streaming tuning.");
+            Debug.LogWarning("No Cesium3DTileset in the scene: skipped streaming tuning.");
             return 0;
         }
 
@@ -175,7 +175,7 @@ public static class LoadingScreenSetup
         if (property == null || !property.CanWrite)
         {
             Debug.LogWarning("Could not set " + propertyName +
-                             " — not present in this Cesium version. Set it by hand " +
+                             ": not present in this Cesium version. Set it by hand " +
                              "in the Inspector if you want it.");
             return 0;
         }

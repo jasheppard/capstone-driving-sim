@@ -71,7 +71,7 @@ public static class VehicleModelSetup
         {
             instance.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             bounds = LocalBounds(instance);
-            Debug.Log("Model was wider than it was long — rotated 90° so it points down +Z.");
+            Debug.Log("Model was wider than it was long: rotated 90 degrees so it points down +Z.");
         }
 
         // ---- Fit model and chassis together ---------------------------------
@@ -90,7 +90,7 @@ public static class VehicleModelSetup
             bounds = LocalBounds(instance);
 
             Debug.Log("Model measured " + modelLength.ToString("F2") +
-                      "m long — scaled by " + factor.ToString("F3") +
+                      "m long: scaled by " + factor.ToString("F3") +
                       " to match the " + ChassisSize.z + "m chassis.");
         }
         else if (modelLength > 0.01f)
@@ -102,7 +102,7 @@ public static class VehicleModelSetup
 
             ResizeChassis(car, chassis);
 
-            Debug.Log("Model is " + modelLength.ToString("F2") + "m long — kept at its own " +
+            Debug.Log("Model is " + modelLength.ToString("F2") + "m long: kept at its own " +
                       "scale and the chassis grew to " + chassis + " to fit it.");
         }
 
@@ -126,25 +126,25 @@ public static class VehicleModelSetup
 
     /// <summary>For models authored facing -Z. Bounds cannot detect this, only your eyes can.</summary>
     [MenuItem("NCAT/Flip Vehicle Model", false, 6)]
-    public static void FlipVehicleModel() { Rotate(0f, 180f, 0f, "Flipped 180° — it now faces the other way."); }
+    public static void FlipVehicleModel() { Rotate(0f, 180f, 0f, "Flipped 180 degrees: it now faces the other way."); }
 
     // Models authored Z-up — common out of Blender and 3ds Max — arrive standing on
     // end or upside down. Unity's importer usually corrects this, but not always.
 
     [MenuItem("NCAT/Rotate Vehicle - Pitch -90", false, 7)]
-    public static void PitchDown() { Rotate(-90f, 0f, 0f, "Pitched -90°. Typical fix for a Z-up export."); }
+    public static void PitchDown() { Rotate(-90f, 0f, 0f, "Pitched -90 degrees. Typical fix for a Z-up export."); }
 
     [MenuItem("NCAT/Rotate Vehicle - Pitch +90", false, 8)]
-    public static void PitchUp() { Rotate(90f, 0f, 0f, "Pitched +90°."); }
+    public static void PitchUp() { Rotate(90f, 0f, 0f, "Pitched +90 degrees."); }
 
     [MenuItem("NCAT/Rotate Vehicle - Roll 180", false, 9)]
-    public static void Roll() { Rotate(0f, 0f, 180f, "Rolled 180° — that is the upside-down case."); }
+    public static void Roll() { Rotate(0f, 0f, 180f, "Rolled 180 degrees: that is the upside-down case."); }
 
     [MenuItem("NCAT/Rotate Vehicle - Yaw +90", false, 10)]
-    public static void YawRight() { Rotate(0f, 90f, 0f, "Turned 90° right."); }
+    public static void YawRight() { Rotate(0f, 90f, 0f, "Turned 90 degrees right."); }
 
     [MenuItem("NCAT/Rotate Vehicle - Yaw -90", false, 11)]
-    public static void YawLeft() { Rotate(0f, -90f, 0f, "Turned 90° left."); }
+    public static void YawLeft() { Rotate(0f, -90f, 0f, "Turned 90 degrees left."); }
 
     /// <summary>Rotates the model and re-seats it, since turning it moves where its wheels are.</summary>
     static void Rotate(float pitch, float yaw, float roll, string message)
@@ -252,7 +252,7 @@ public static class VehicleModelSetup
         rb.mass = 1000f * ratio;
 
         Debug.Log("Chassis mass scaled to " + rb.mass.ToString("F0") + " kg. " +
-                  "Raise Acceleration Force on the VehicleController to suit — " +
+                  "Raise Acceleration Force on the VehicleController to suit: " +
                   "the default 15000 was tuned for a 1000 kg car.");
     }
 

@@ -41,7 +41,7 @@ public static class RouteSetup
             "  B          drop a waypoint here\n" +
             "  N          change what the next one will be\n" +
             "  Backspace  remove the last one\n" +
-            "Finish with a FINISH waypoint, then press Stop — it saves automatically.\n" +
+            "Finish with a FINISH waypoint, then press Stop: it saves automatically.\n" +
             "Then run NCAT → Route → 2. Import Recorded Route.");
     }
 
@@ -116,7 +116,7 @@ public static class RouteSetup
 
             RouteWaypoint.Kind kind = RouteWaypoint.Kind.Checkpoint;
             try { kind = (RouteWaypoint.Kind)System.Enum.Parse(typeof(RouteWaypoint.Kind), d.kind); }
-            catch { Debug.LogWarning("Unknown waypoint kind \"" + d.kind + "\" — treated as Checkpoint."); }
+            catch { Debug.LogWarning("Unknown waypoint kind \"" + d.kind + "\": treated as Checkpoint."); }
 
             GameObject go = new GameObject(
                 string.Format("{0:00}_{1}", i + 1, kind));
@@ -141,7 +141,7 @@ public static class RouteSetup
         Debug.Log(
             "Imported " + data.waypoints.Length + " waypoint(s) from " +
             Path.GetFileName(newest) + ".\n" +
-            "  Reorder by dragging in the Hierarchy — order is the route order\n" +
+            "  Reorder by dragging in the Hierarchy: order is the route order\n" +
             "  Select a waypoint to edit its kind, radius and speed limit\n" +
             (finishCount == 0
                 ? "  WARNING: no Finish waypoint. The run will end when the last point is reached.\n"
@@ -174,7 +174,7 @@ public static class RouteSetup
 
         Debug.Log("Snapped " + moved + " waypoint(s) to the terrain. " +
                   (moved == 0
-                      ? "Nothing hit — the Cesium tiles near the route may not be loaded, " +
+                      ? "Nothing hit: the Cesium tiles near the route may not be loaded, " +
                         "or physics meshes are off (NCAT → Enable Cesium Physics Meshes)."
                       : ""));
 
@@ -221,7 +221,7 @@ public static class RouteSetup
 
         Text objective = AddText(panel, "Objective", 26, FontStyle.Bold,
                                  new Vector2(0f, -46f), new Vector2(540f, 34f));
-        objective.text = "—";
+        objective.text = "-";
         objective.color = new Color(1f, 0.82f, 0.25f);
 
         Text distance = AddText(panel, "Distance", 20, FontStyle.Bold,
@@ -300,7 +300,7 @@ public static class RouteSetup
             "  " + count + " waypoint(s) on the route\n" +
             "  Objective, distance and progress at the top of the screen\n" +
             (runner.debrief == null
-                ? "  WARNING: no DebriefScreen — reaching the finish will not open a report.\n" +
+                ? "  WARNING: no DebriefScreen: reaching the finish will not open a report.\n" +
                   "  Run NCAT → Set Up Drive Debrief.\n"
                 : "  Reaching the Finish waypoint opens the debrief automatically\n") +
             (count == 0 ? "  WARNING: no waypoints. Import a recorded route first.\n" : "") +

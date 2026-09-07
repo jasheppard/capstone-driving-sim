@@ -18,7 +18,7 @@ using System.Reflection;
 public class MinimapCamera : MonoBehaviour
 {
     [Header("Following")]
-    [Tooltip("What the map centres on. Left empty, it uses the main camera — which " +
+    [Tooltip("What the map centres on. Left empty, it uses the main camera: which " +
              "works whether you are driving or on foot.")]
     public Transform followTarget;
 
@@ -80,7 +80,7 @@ public class MinimapCamera : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[MinimapCamera] No RawImage assigned to Display — " +
+            Debug.LogError("[MinimapCamera] No RawImage assigned to Display: " +
                            "the map has nowhere to draw. Re-run NCAT → Set Up Minimap.");
         }
     }
@@ -93,14 +93,14 @@ public class MinimapCamera : MonoBehaviour
         if (!gameObject.activeInHierarchy)
         {
             Debug.LogError("[MinimapCamera] This camera's GameObject was disabled, so the " +
-                           "map renders nothing. Recompile — CarFollowCamera should skip it.");
+                           "map renders nothing. Recompile: CarFollowCamera should skip it.");
             return;
         }
 
         if (cam != null && !cam.enabled)
         {
             cam.enabled = true;
-            Debug.LogWarning("[MinimapCamera] Camera component was disabled — re-enabled it.");
+            Debug.LogWarning("[MinimapCamera] Camera component was disabled: re-enabled it.");
         }
 
         Debug.Log("[MinimapCamera] Rendering at " + textureSize + "px, " +
@@ -126,7 +126,7 @@ public class MinimapCamera : MonoBehaviour
         System.Type managerType = FindType("CesiumForUnity.CesiumCameraManager");
         if (managerType == null)
         {
-            Debug.Log("[MinimapCamera] No Cesium in this project — nothing to register with.");
+            Debug.Log("[MinimapCamera] No Cesium in this project: nothing to register with.");
             return;
         }
 
@@ -165,14 +165,14 @@ public class MinimapCamera : MonoBehaviour
         List<Camera> cameras = camerasProperty.GetValue(manager) as List<Camera>;
         if (cameras == null)
         {
-            Debug.LogWarning("[MinimapCamera] additionalCameras was not a List<Camera> — " +
+            Debug.LogWarning("[MinimapCamera] additionalCameras was not a List<Camera>: " +
                              "add this camera to it by hand in the Inspector.");
             return;
         }
 
         if (!cameras.Contains(cam)) cameras.Add(cam);
 
-        Debug.Log("[MinimapCamera] Registered with Cesium — it now streams tiles for the " +
+        Debug.Log("[MinimapCamera] Registered with Cesium: it now streams tiles for the " +
                   "map view too, so the area behind you stays loaded.");
     }
 

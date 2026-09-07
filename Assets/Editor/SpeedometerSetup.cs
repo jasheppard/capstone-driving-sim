@@ -134,7 +134,7 @@ public static class SpeedometerSetup
         speedo.vehicle = Object.FindObjectOfType<VehicleController>();
 
         if (speedo.vehicle == null)
-            Debug.LogWarning("No VehicleController in the scene yet — the speedometer " +
+            Debug.LogWarning("No VehicleController in the scene yet: the speedometer " +
                              "will find one at runtime, but check PlayerCar exists.");
 
         EditorUtility.SetDirty(speedo);
@@ -145,7 +145,7 @@ public static class SpeedometerSetup
             "Speedometer set up, bottom-right.\n" +
             "  Dial reads 0-" + MaxDisplay + " mph, needle plus digital readout\n" +
             "  Readout turns amber over the speed limit (20 mph) and red 5 over\n" +
-            "  Stopping distance shown underneath — that is real physics, not a guess\n" +
+            "  Stopping distance shown underneath: that is real physics, not a guess\n" +
             "Set Max Display Speed to 40 on the Speedometer component if you want " +
             "finer resolution at campus speeds.\n" +
             "Save the scene (Ctrl+S).");

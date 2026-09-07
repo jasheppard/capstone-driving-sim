@@ -107,7 +107,7 @@ public static class PedestrianSetup
         Debug.Log(
             "Pedestrians set up with " + prefabs.Count + " character(s):" + names + "\n" +
             "  Walk " + walkSpeed.ToString("F2") + " m/s, run " + runSpeed.ToString("F2") +
-            " m/s — taken from the clips, so the feet do not slide\n" +
+            " m/s: taken from the clips, so the feet do not slide\n" +
             "  Population " + spawner.population + ", spawning " +
             spawner.spawnRadiusMin + "–" + spawner.spawnRadiusMax + "m from the camera\n" +
             "They follow the main camera, so they appear around the car as you drive.");
@@ -327,7 +327,7 @@ public static class PedestrianSetup
         {
             importer.clipAnimations = clips;
             importer.SaveAndReimport();
-            Debug.Log("Prepared " + Path.GetFileName(path) + " — Humanoid rig, looping on.");
+            Debug.Log("Prepared " + Path.GetFileName(path) + ": Humanoid rig, looping on.");
         }
     }
 

@@ -174,7 +174,7 @@ public static class MinimapSetup
 
             if (type == null)
             {
-                Debug.Log("No Cesium in this project — skipping camera registration.");
+                Debug.Log("No Cesium in this project: skipping camera registration.");
                 return;
             }
 

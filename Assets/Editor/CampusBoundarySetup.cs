@@ -26,7 +26,7 @@ public static class CampusBoundarySetup
 
         if (tileset == null)
         {
-            Debug.LogError("No Cesium3DTileset in the scene — nothing to limit.");
+            Debug.LogError("No Cesium3DTileset in the scene: nothing to limit.");
             return;
         }
 
@@ -69,7 +69,7 @@ public static class CampusBoundarySetup
             "  Tiles stream out to " + TileRadius + " m from " + CentreName + "\n" +
             "  The car is turned back at " + WallRadius + " m\n" +
             "Move " + CentreName + " to recentre the campus, and tune both radii in " +
-            "the Inspector — the circles draw in the Scene view when selected.\n" +
+            "the Inspector: the circles draw in the Scene view when selected.\n" +
             "Save the scene (Ctrl+S) or none of this survives.");
     }
 

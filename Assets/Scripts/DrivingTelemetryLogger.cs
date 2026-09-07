@@ -40,7 +40,7 @@ using UnityEngine.InputSystem;
 public class DrivingTelemetryLogger : MonoBehaviour
 {
     [Header("Sampling")]
-    [Tooltip("Samples per second. 10 Hz gives a few thousand rows in a short drive — " +
+    [Tooltip("Samples per second. 10 Hz gives a few thousand rows in a short drive: " +
              "plenty for correlation work without producing an unwieldy file.")]
     public float sampleRate = 10f;
 
@@ -52,7 +52,7 @@ public class DrivingTelemetryLogger : MonoBehaviour
     [Tooltip("Radius counted as 'near' for the crowding column, in metres.")]
     public float nearRadius = 15f;
 
-    [Tooltip("Reported when no pedestrian is in range — a ceiling, not a real distance.")]
+    [Tooltip("Reported when no pedestrian is in range: a ceiling, not a real distance.")]
     public float maxReportedDistance = 100f;
 
     [Header("Output")]

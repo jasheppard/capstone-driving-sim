@@ -195,7 +195,7 @@ public static class CampusCarSetup
         Debug.Log(touched > 0
             ? "Camera framing applied. Right stick orbits the car in third person, " +
               "full 360, and stays where you leave it."
-            : "No CarCamera in this scene — run NCAT → Set Up Player Car first.");
+            : "No CarCamera in this scene: run NCAT → Set Up Player Car first.");
     }
 
     static void ApplyCarFraming(CarFollowCamera follow)
@@ -238,7 +238,7 @@ public static class CampusCarSetup
     public static void StartPlayAtCurrentScene()
     {
         EditorSceneManager.playModeStartScene = null;
-        Debug.Log("Play will now start at whichever scene is open — Unity's default.");
+        Debug.Log("Play will now start at whichever scene is open: Unity's default.");
     }
 
     [MenuItem("NCAT/Configure Build Scenes", false, 40)]
@@ -265,7 +265,7 @@ public static class CampusCarSetup
             new EditorBuildSettingsScene(gameScene, true),
         };
 
-        Debug.Log("Build scenes set:\n  0 — MainMenu (launches first)\n  1 — SampleScene (the campus)");
+        Debug.Log("Build scenes set:\n  0: MainMenu (launches first)\n  1: SampleScene (the campus)");
     }
 
     [MenuItem("NCAT/Enable Cesium Physics Meshes", false, 20)]

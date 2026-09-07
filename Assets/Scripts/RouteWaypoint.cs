@@ -39,7 +39,7 @@ public class RouteWaypoint : MonoBehaviour
 
     [Header("Geometry")]
     [Tooltip("How close the bus must get for this to count as reached, in metres. " +
-             "Generous is kinder — photogrammetry roads are not perfectly flat and " +
+             "Generous is kinder: photogrammetry roads are not perfectly flat and " +
              "a tight radius is easy to miss.")]
     public float radius = 12f;
 

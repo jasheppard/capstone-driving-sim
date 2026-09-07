@@ -20,7 +20,7 @@ public class PedestrianSpawner : MonoBehaviour
              "you add the less the crowd repeats.")]
     public GameObject[] pedestrianPrefabs;
 
-    [Tooltip("How many to keep alive at once. Each is a skinned character — raise this " +
+    [Tooltip("How many to keep alive at once. Each is a skinned character: raise this " +
              "carefully and watch your frame rate.")]
     public int population = 8;
 
@@ -42,7 +42,7 @@ public class PedestrianSpawner : MonoBehaviour
     public float groundProbeHeight = 60f;
     public float groundProbeDistance = 200f;
 
-    [Tooltip("Reject spawn points this much higher than the target — they are rooftops.")]
+    [Tooltip("Reject spawn points this much higher than the target: they are rooftops.")]
     public float maxHeightAboveTarget = 6f;
 
     [Header("Pacing")]

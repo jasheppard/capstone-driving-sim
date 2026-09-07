@@ -184,7 +184,7 @@ public static class DebriefSetup
         Debug.Log(
             "Drive debrief set up.\n" +
             "  Press Escape (or Options on the pad) after driving to end the run\n" +
-            "  Needs 20 seconds of driving before it will report — rates need a sample\n" +
+            "  Needs 20 seconds of driving before it will report: rates need a sample\n" +
             "  Writes drive_report_<timestamp>.txt next to the telemetry CSV\n" +
             "  Score is rate-based: events per minute, not totals\n" +
             "Tune the thresholds and weights on DriveScorer, on PlayerCar.\n" +
