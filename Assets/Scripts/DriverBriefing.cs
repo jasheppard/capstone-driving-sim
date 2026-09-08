@@ -53,7 +53,7 @@ public class DriverBriefing : MonoBehaviour
         route = FindObjectOfType<RouteRunner>();
         vehicle = FindObjectOfType<VehicleController>();
 
-        if (panel != null) panel.SetActive(false);
+        if (Overlay() != null) Overlay().SetActive(false);
 
         if (!showOnStart) return;
 
@@ -109,6 +109,7 @@ public class DriverBriefing : MonoBehaviour
         UpdateRouteLine();
 
         if (panel != null) panel.SetActive(true);
+        if (Overlay() != null) Overlay().SetActive(true);
 
         Time.timeScale = 0f;
         Cursor.visible = true;
@@ -121,7 +122,7 @@ public class DriverBriefing : MonoBehaviour
 
         visible = false;
 
-        if (panel != null) panel.SetActive(false);
+        if (Overlay() != null) Overlay().SetActive(false);
 
         Time.timeScale = 1f;
 
@@ -150,4 +151,26 @@ public class DriverBriefing : MonoBehaviour
         // A scene change while paused would leave the next scene frozen.
         Time.timeScale = 1f;
     }
+
+    /// <summary>
+    /// What actually gets shown and hidden: the whole overlay, not just the panel.
+    ///
+    /// The setup used to wire `panel` to the inner panel, whose parent is a
+    /// full-screen near-opaque Dim image. Hiding only the panel left that Dim
+    /// sitting over the game, and two of them stacked passed under 2% of the light
+    /// through, which looked like the whole game had lost brightness and contrast.
+    ///
+    /// Stepping up one level when the parent is not the Canvas itself repairs
+    /// scenes that were already built, without anyone re-running the setup.
+    /// </summary>
+    GameObject Overlay()
+    {
+        if (panel == null) return null;
+
+        Transform parent = panel.transform.parent;
+        if (parent != null && parent.GetComponent<Canvas>() == null) return parent.gameObject;
+
+        return panel;
+    }
+
 }

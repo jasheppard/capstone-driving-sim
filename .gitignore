@@ -82,3 +82,6 @@ figures/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# Unity-generated UI schema
+UIElementsSchema/

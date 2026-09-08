@@ -69,6 +69,9 @@ public class DrivingTelemetryLogger : MonoBehaviour
     StreamWriter writer;
     string filePath;
 
+    // Read once at the start of the session rather than on every row.
+    string driverName = DriverIdentity.Unknown;
+
     float sessionTime;
     float nextSampleTime;
     int rowCount;
@@ -104,12 +107,16 @@ public class DrivingTelemetryLogger : MonoBehaviour
         Directory.CreateDirectory(folder);
 
         string stamp = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        filePath = Path.Combine(folder, "drive_session_" + stamp + ".csv");
+        // The driver's name goes in the filename so a folder of sessions can be
+        // sorted by person without opening any of them.
+        string driver = DriverIdentity.FileSafeName;
+        driverName = driver;
+        filePath = Path.Combine(folder, "drive_" + driver + "_" + stamp + ".csv");
 
         writer = new StreamWriter(filePath, false, Encoding.UTF8);
 
         writer.WriteLine(
-            "time_s,speed_kmh,throttle,brake,steer_input,yaw_rate_dps," +
+            "driver,time_s,speed_kmh,throttle,brake,steer_input,yaw_rate_dps," +
             "lateral_accel_ms2,speed_change_ms2,nearest_ped_m,peds_within_15m," +
             "collisions_cum,distance_m,pos_x,pos_z");
 
@@ -171,6 +178,7 @@ public class DrivingTelemetryLogger : MonoBehaviour
         // the default formatting would produce "12,5" and silently corrupt the CSV.
         writer.WriteLine(string.Join(",", new string[]
         {
+            driverName,
             F(sessionTime - warmupSeconds),
             F(speedKmh),
             F(throttle),

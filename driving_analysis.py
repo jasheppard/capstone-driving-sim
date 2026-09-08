@@ -500,8 +500,27 @@ def main():
 
     # A short written summary, so the numbers quoted in the report come from the
     # script rather than being read off a chart by eye.
+    # Sessions recorded after the driver name was added carry it in every row.
+    # Older files predate the column, so its absence is normal rather than an error.
+    if "driver" in df.columns:
+        drivers = sorted(df["driver"].astype(str).unique())
+
+        if len(drivers) > 1:
+            print("\nPer driver")
+            print("----------")
+            print("%-20s %8s %10s %10s %10s"
+                  % ("driver", "samples", "mean mph", "top mph", "peak g"))
+            for name, rows in df.groupby("driver"):
+                print("%-20s %8d %10.1f %10.1f %10.2f"
+                      % (name, len(rows),
+                         rows["speed_kmh"].mean() / 1.60934,
+                         rows["speed_kmh"].max() / 1.60934,
+                         rows["lateral_g"].max()))
+
     print("\nSummary")
     print("-------")
+    if "driver" in df.columns and df["driver"].nunique() == 1:
+        print("Driver                : %s" % df["driver"].iloc[0])
     print("Samples analysed      : %d" % len(df))
     print("Mean speed            : %.1f km/h" % df["speed_kmh"].mean())
     print("Top speed             : %.1f km/h" % df["speed_kmh"].max())

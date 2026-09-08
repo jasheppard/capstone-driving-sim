@@ -164,7 +164,7 @@ public static class DebriefSetup
                                 new Color(0.20f, 0.23f, 0.28f), Color.white);
 
         // ---- wire ---------------------------------------------------------------
-        screen.panel = panel;
+        screen.panel = dim;
         screen.scoreText = score;
         screen.gradeText = grade;
         screen.verdictText = verdict;
@@ -175,7 +175,13 @@ public static class DebriefSetup
         screen.driveAgainButton = again;
         screen.menuButton = menu;
 
-        panel.SetActive(false);
+
+        // The Dim is a full-screen, near-opaque image and the panel is its child,
+        // so hiding only the panel leaves the Dim covering the game. That is what
+        // darkened the loading screen, the briefing and the drive itself: two of
+        // these overlays stacked, passing under 2% of the light through. Toggle the
+        // whole overlay instead.
+        dim.SetActive(false);
 
         EditorUtility.SetDirty(screen);
         EditorSceneManager.MarkSceneDirty(canvasGO.scene);

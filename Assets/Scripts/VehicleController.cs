@@ -175,6 +175,20 @@ public class VehicleController : MonoBehaviour
         rb.centerOfMass = new Vector3(0f, centreOfMassHeight, 0f);
 
         ApplyUprightConstraint();
+
+#if ENABLE_INPUT_SYSTEM
+        // One line in the Console beats guessing why the pad does nothing.
+        //
+        // If this reports none, Unity is not seeing the controller at all and the
+        // cause is outside the project. Steam Input claims a DualSense and hides it
+        // from other applications, and a Bluetooth pad that has gone to sleep
+        // enumerates as nothing at all.
+        Debug.Log(Gamepad.current != null
+            ? "[VehicleController] Gamepad detected: " + Gamepad.current.displayName
+            : "[VehicleController] No gamepad detected. Window > Analysis > Input " +
+              "Debugger lists every device Unity can see. If the pad is missing " +
+              "there, close Steam or reconnect it over USB.");
+#endif
     }
 
     void OnValidate()

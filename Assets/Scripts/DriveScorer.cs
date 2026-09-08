@@ -419,10 +419,12 @@ public class DriveScorer : MonoBehaviour
             Directory.CreateDirectory(folder);
 
             string stamp = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-            string path = Path.Combine(folder, "drive_report_" + stamp + ".txt");
+            string path = Path.Combine(folder, "drive_report_" +
+                                       DriverIdentity.FileSafeName + "_" + stamp + ".txt");
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("NC A&T Campus Driving Safety Simulator: Drive Report");
+            sb.AppendLine("Driver: " + DriverIdentity.Name);
             sb.AppendLine("Generated " + System.DateTime.Now.ToString("f"));
             sb.AppendLine(new string('-', 58));
             sb.AppendLine();
