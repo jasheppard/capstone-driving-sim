@@ -25,6 +25,13 @@ public class DriverBriefing : MonoBehaviour
     [Header("Panel")]
     public GameObject panel;
 
+    [Header("Pages")]
+    [Tooltip("Page 1: the controls and the job.")]
+    public GameObject page1;
+
+    [Tooltip("Page 2: the nine elements of the road test.")]
+    public GameObject page2;
+
     [Tooltip("Optional. Filled in with the route's stop count once the route loads.")]
     public Text routeLine;
 
@@ -32,8 +39,9 @@ public class DriverBriefing : MonoBehaviour
     [Tooltip("Show automatically at the start of a run.")]
     public bool showOnStart = true;
 
-    [Tooltip("Key that reopens it mid-run.")]
-    public KeyCode reopenKey = KeyCode.H;
+    [Tooltip("Key that reopens it mid-run. F1 rather than H, because H is the horn " +
+             "and the road test scores whether you used it.")]
+    public KeyCode reopenKey = KeyCode.F1;
 
     [Tooltip("Ignore input for a moment after it appears, so the keypress that " +
              "dismissed the loading screen does not dismiss this too.")]
@@ -80,7 +88,7 @@ public class DriverBriefing : MonoBehaviour
         {
             // Unscaled, because the game is paused while this is up.
             if (Time.unscaledTime - shownAt < inputDelay) return;
-            if (DismissPressed()) Hide();
+            if (DismissPressed()) Advance();
             return;
         }
 
@@ -99,12 +107,42 @@ public class DriverBriefing : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Page 1 goes to page 2; page 2 starts the drive.
+    ///
+    /// The controls and the grading are on separate pages because they answer
+    /// different questions and neither is short. Putting the nine elements under
+    /// the control list produced a wall of text nobody would read, and a briefing
+    /// nobody reads is worse than no briefing.
+    /// </summary>
+    void Advance()
+    {
+        if (page2 != null && !page2.activeSelf)
+        {
+            ShowPage(2);
+            shownAt = Time.unscaledTime;      // the same debounce for the page turn
+            return;
+        }
+
+        Hide();
+    }
+
+    void ShowPage(int number)
+    {
+        if (page1 != null) page1.SetActive(number == 1);
+        if (page2 != null) page2.SetActive(number == 2);
+    }
+
     public void Show()
     {
         if (visible) return;
 
         visible = true;
         shownAt = Time.unscaledTime;
+
+        // Always reopened at the start, so F1 mid-run gives the controls first
+        // rather than dropping you wherever you happened to leave off.
+        ShowPage(1);
 
         UpdateRouteLine();
 

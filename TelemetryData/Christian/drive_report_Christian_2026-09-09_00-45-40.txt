@@ -1,0 +1,27 @@
+NC A&T Campus Driving Safety Simulator: Road Skills Test
+Driver: Christian
+Generated Wednesday, September 9, 2026 12:45 AM
+--------------------------------------------------------------
+
+Drive
+  Duration              1m 37s
+  Distance              686 m
+  Average speed         19.0 mph
+  Top speed             41.0 mph
+
+Events
+  Time over 20 mph      39 s  (40% of the drive)
+  Brake applications    35, of which harsh 20  (12.3/min)
+  Standing starts       6
+  Turns                 4, unsignalled 4
+  Harsh cornering       30  (18.5/min)
+  Pedestrian near miss  0
+  Collisions            25
+
+Peaks
+  Hardest braking       1.55 g
+  Peak cornering load   1.18 g
+  Closest pedestrian    2.9 m
+
+Element thresholds: 0.3 g braking, 0.22 g starting, 0.25 g cornering, 2.5 m near miss, 10 s safe-speed window.
+The elements follow the NCDOT road skills list. Which driving behaviour counts as failing each one is a rubric we defined.

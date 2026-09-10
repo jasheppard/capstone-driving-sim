@@ -55,6 +55,27 @@ public class RouteMarkers : MonoBehaviour
 
     [Range(0f, 1f)] public float ringAlpha = 0.22f;
 
+    [Header("Orbs")]
+    [Tooltip("A large floating ball at each waypoint, the thing the driver actually " +
+             "aims at and drives through.")]
+    public bool showOrbs = true;
+
+    [Tooltip("Radius in metres. Big enough to be unmissable from down the road.")]
+    public float orbRadius = 1.8f;
+
+    [Tooltip("Height above the ground, in metres. Around windscreen height so it " +
+             "sits in the driver's eyeline rather than under the bonnet.")]
+    public float orbHeight = 2.6f;
+
+    [Range(0f, 1f)] public float orbAlpha = 0.9f;
+
+    [Tooltip("Metres the orb rises and falls as it bobs.")]
+    public float bobHeight = 0.45f;
+
+    [Tooltip("Degrees per second the orb spins. Motion is what makes it read as " +
+             "something to collect rather than scenery.")]
+    public float spinSpeed = 60f;
+
     [Header("Motion")]
     [Tooltip("Breathing speed of the active beam, in cycles per second. Zero is static.")]
     public float pulseSpeed = 1.1f;
@@ -68,8 +89,10 @@ public class RouteMarkers : MonoBehaviour
         public GameObject root;
         public Renderer beam;
         public Renderer ring;
+        public Renderer orb;
         public Material beamMaterial;
         public Material ringMaterial;
+        public Material orbMaterial;
         public Color colour;
     }
 
@@ -150,6 +173,34 @@ public class RouteMarkers : MonoBehaviour
             marker.ring.sharedMaterial = marker.ringMaterial;
         }
 
+        // ---- the orb --------------------------------------------------------------
+        //
+        // The thing you actually aim at. A beam tells you where a waypoint is from
+        // half a mile away, and a ring tells you where its edge is, but neither reads
+        // as something to go and get. A big solid ball floating at windscreen height
+        // does, and it turns following a route into collecting things, which is a far
+        // clearer instruction than a line on a map.
+        //
+        // Nearly opaque on purpose. The beam and ring are deliberately faint so they
+        // do not hide the road; the orb is the opposite, and is meant to be the most
+        // obvious object on screen.
+        if (showOrbs)
+        {
+            GameObject orb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            orb.name = "Orb";
+            orb.transform.SetParent(marker.root.transform, false);
+            orb.transform.localPosition = new Vector3(0f, orbHeight, 0f);
+            orb.transform.localScale = Vector3.one * orbRadius * 2f;
+
+            // No collider. Driving through it must not be a collision, and a
+            // collision is an automatic failure on the road test.
+            StripCollider(orb);
+
+            marker.orb = orb.GetComponent<Renderer>();
+            marker.orbMaterial = CreateTransparentMaterial(marker.colour, orbAlpha);
+            marker.orb.sharedMaterial = marker.orbMaterial;
+        }
+
         return marker;
     }
 
@@ -208,7 +259,38 @@ public class RouteMarkers : MonoBehaviour
         }
 
         Pulse(current);
+        Animate();
         UpdateArrow(current);
+    }
+
+    /// <summary>
+    /// Bobs and spins every visible orb.
+    ///
+    /// Both together, because either alone is not enough: a sphere spinning on its
+    /// own axis is invisible without a texture to see turning, and one that only bobs
+    /// reads as floating debris. Rotating while rising and falling is what makes it
+    /// look like something placed there to be collected.
+    /// </summary>
+    void Animate()
+    {
+        if (!showOrbs) return;
+
+        float spin = Time.time * spinSpeed;
+
+        for (int i = 0; i < markers.Count; i++)
+        {
+            Marker marker = markers[i];
+            if (marker == null || marker.orb == null) continue;
+            if (marker.root == null || !marker.root.activeSelf) continue;
+
+            Transform orb = marker.orb.transform;
+
+            // Offset by index so a row of orbs does not bob in unison like a wave.
+            float phase = Mathf.Sin((Time.time * 1.6f) + i * 0.7f) * bobHeight;
+
+            orb.localPosition = new Vector3(0f, orbHeight + phase, 0f);
+            orb.localRotation = Quaternion.Euler(0f, spin, spin * 0.4f);
+        }
     }
 
     void RefreshVisibility(int current)
@@ -231,6 +313,12 @@ public class RouteMarkers : MonoBehaviour
             if (marker.ringMaterial != null)
                 SetAlpha(marker.ringMaterial, marker.colour,
                          i == current ? ringAlpha : ringAlpha * 0.4f);
+
+            // The one you are going for is solid. The ones behind it are ghosts, so
+            // there is never any doubt which ball is next.
+            if (marker.orbMaterial != null)
+                SetAlpha(marker.orbMaterial, marker.colour,
+                         i == current ? orbAlpha : orbAlpha * 0.25f);
         }
     }
 

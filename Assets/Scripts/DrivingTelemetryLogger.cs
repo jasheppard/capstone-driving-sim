@@ -103,14 +103,18 @@ public class DrivingTelemetryLogger : MonoBehaviour
     {
         // Application.dataPath is <project>/Assets, so its parent is the project root.
         string root = Path.GetDirectoryName(Application.dataPath);
-        string folder = Path.Combine(root, outputFolder);
+
+        // One folder per driver, with the name in the filename as well. The folder
+        // is what makes a cohort of runs sortable by person without opening
+        // anything; the name in the filename is what survives a file being moved out
+        // of its folder, which is how a CSV usually reaches the analysis script.
+        string driver = DriverIdentity.FileSafeName;
+        driverName = driver;
+
+        string folder = Path.Combine(Path.Combine(root, outputFolder), driver);
         Directory.CreateDirectory(folder);
 
         string stamp = System.DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-        // The driver's name goes in the filename so a folder of sessions can be
-        // sorted by person without opening any of them.
-        string driver = DriverIdentity.FileSafeName;
-        driverName = driver;
         filePath = Path.Combine(folder, "drive_" + driver + "_" + stamp + ".csv");
 
         writer = new StreamWriter(filePath, false, Encoding.UTF8);

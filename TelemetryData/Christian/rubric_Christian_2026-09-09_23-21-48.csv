@@ -1,0 +1,10 @@
+driver,element,opportunities,violations,proficiency_pct,assessed,passed,critical
+Christian,Stop signs,0,0,,0,,0
+Christian,Yielding to pedestrians,0,0,,0,,0
+Christian,Safe speed for conditions,7,5,28.6,1,0,0
+Christian,Stopping,59,5,91.5,1,1,0
+Christian,Starting,1,1,0.0,1,0,0
+Christian,Approaching intersections,0,0,,0,,0
+Christian,Traffic signals,0,0,,0,,0
+Christian,Turning,3,3,0.0,1,0,0
+Christian,Turn signals and horn,3,2,33.3,1,0,0

@@ -6,18 +6,21 @@ using UnityEngine.InputSystem;
 #endif
 
 /// <summary>
-/// The post-drive report.
+/// The post-drive report, as a road test result rather than a score out of a
+/// hundred.
 ///
-/// A training simulator teaches in the debrief, not during the run. Up to now
-/// every safety event was recorded to a CSV that only the researcher ever read;
-/// the person driving got no feedback at all. This closes that loop.
+/// A training simulator teaches in the debrief, not during the run. What it shows
+/// now is what a real examiner's sheet shows: every element of the test, whether it
+/// was passed, and a stamp at the bottom. That is deliberately not a game score. A
+/// number we invented cannot be compared to anything outside this project, and the
+/// whole reason for grading against the North Carolina elements is that the result
+/// means the same thing here as it does at a licence office.
 ///
 /// Press Escape, or Options on the controller, to end the drive and see it.
 ///
-/// Ending is deliberate rather than resumable: FinishDrive() freezes the
-/// statistics and flushes the telemetry file, so one drive maps to exactly one
-/// report and one CSV. Resuming afterwards would produce a session whose data
-/// stops halfway through.
+/// Ending is deliberate rather than resumable: FinishDrive freezes the statistics
+/// and flushes the telemetry file, so one drive maps to exactly one result and one
+/// CSV. Resuming afterwards would produce a session whose data stops halfway.
 /// </summary>
 public class DebriefScreen : MonoBehaviour
 {
@@ -25,17 +28,27 @@ public class DebriefScreen : MonoBehaviour
     [Tooltip("The report itself. Hidden until the drive ends.")]
     public GameObject panel;
 
-    [Header("Score")]
-    public Text scoreText;
-    public Text gradeText;
-    public Text verdictText;
+    [Header("Heading")]
+    public Text driverLine;
 
-    [Header("Columns")]
-    [Tooltip("Rich text is used for these, so individual values can be coloured.")]
+    [Header("Result")]
+    public Text stampText;
+    public Text proficiencyText;
+    public Text passedText;
+    public Text assessedText;
+    public Text verdictText;
+    public Text governorNote;
+
+    [Header("Drive summary")]
     public Text summaryLabels;
     public Text summaryValues;
-    public Text eventLabels;
-    public Text eventValues;
+
+    [Header("The nine elements")]
+    [Tooltip("Three parallel columns, one line per element, in enum order.")]
+    public Text elementNumbers;
+    public Text elementNames;
+    public Text elementResults;
+    public Text elementScores;
 
     [Header("Buttons")]
     public Button driveAgainButton;
@@ -45,27 +58,36 @@ public class DebriefScreen : MonoBehaviour
     public KeyCode endDriveKey = KeyCode.Escape;
     public string menuSceneName = "MainMenu";
 
-    [Tooltip("Minimum seconds of driving before a report means anything. A five " +
-             "second drive has no rate worth computing.")]
+    [Tooltip("Minimum seconds of driving before a result means anything. A five " +
+             "second drive has tested nothing.")]
     public float minimumDriveSeconds = 20f;
 
     static readonly string Good = "#6FCF8B";
     static readonly string Warn = "#FFC845";
     static readonly string Bad = "#FF6B57";
-    static readonly string Plain = "#E7EBF0";
+    static readonly string Plain = "#E0E7F0";
+    static readonly string Faint = "#6E7A8A";
 
     DriveScorer scorer;
+    NcRubric rubric;
     RouteRunner route;
+    VehicleController vehicle;
     bool shown;
 
     void Start()
     {
         scorer = FindObjectOfType<DriveScorer>();
-        route = FindObjectOfType<RouteRunner>();      // optional — free driving has none
+        rubric = FindObjectOfType<NcRubric>();
+        route = FindObjectOfType<RouteRunner>();      // optional, free driving has none
+        vehicle = FindObjectOfType<VehicleController>();
 
         if (scorer == null)
             Debug.LogError("[DebriefScreen] No DriveScorer in the scene: " +
-                           "run NCAT → Set Up Drive Debrief.");
+                           "run NCAT > Set Up Drive Debrief.");
+
+        if (rubric == null)
+            Debug.LogError("[DebriefScreen] No NcRubric in the scene: " +
+                           "run NCAT > Set Up Road Test.");
 
         if (Overlay() != null) Overlay().SetActive(false);
 
@@ -95,16 +117,15 @@ public class DebriefScreen : MonoBehaviour
         {
             Debug.Log("[DebriefScreen] Only " + scorer.DurationSeconds.ToString("F0") +
                       "s driven: drive for at least " + minimumDriveSeconds +
-                      "s before ending, or the rates are meaningless.");
+                      "s before ending, or nothing has been tested.");
             return;
         }
 
         shown = true;
-        scorer.FinishDrive();
+        scorer.FinishDrive();       // this also calls Finish on the rubric
 
         Populate();
 
-        if (panel != null) panel.SetActive(true);
         if (Overlay() != null) Overlay().SetActive(true);
 
         // Paused, so the world behind the report is frozen rather than carrying on
@@ -116,101 +137,162 @@ public class DebriefScreen : MonoBehaviour
 
     void Populate()
     {
-        if (scoreText != null) scoreText.text = scorer.Score.ToString();
+        if (driverLine != null)
+            driverLine.text = DriverIdentity.Name + "   ·   " +
+                              System.DateTime.Now.ToString("d MMM yyyy") + "   ·   " +
+                              DriveScorer.FormatTime(scorer.DurationSeconds);
 
-        if (gradeText != null)
+        PopulateResult();
+        PopulateSummary();
+        PopulateElements();
+    }
+
+    // ------------------------------------------------------------------- result
+
+    void PopulateResult()
+    {
+        if (rubric == null) return;
+
+        bool passed = rubric.Stamp == "PASS";
+        Color colour = passed ? new Color(0.44f, 0.81f, 0.55f)
+                     : rubric.Stamp == "INCOMPLETE" ? new Color(1f, 0.78f, 0.27f)
+                     : new Color(1f, 0.42f, 0.34f);
+
+        if (stampText != null)
         {
-            gradeText.text = scorer.Grade;
-            gradeText.color = GradeColour(scorer.Score);
+            stampText.text = rubric.Stamp;
+            stampText.color = colour;
         }
 
-        if (scoreText != null) scoreText.color = GradeColour(scorer.Score);
-        if (verdictText != null) verdictText.text = scorer.Verdict;
+        if (proficiencyText != null)
+        {
+            proficiencyText.text = rubric.OverallProficiency.ToString("F0") + "%";
+            proficiencyText.color = colour;
+        }
 
-        // ---- the drive ---------------------------------------------------------
+        if (passedText != null)
+            passedText.text = rubric.PassedCount + " of " + rubric.AssessedCount +
+                              " elements passed";
+
+        // Stated plainly, because it is the caveat that makes the rest honest. A
+        // result computed over six elements is not a result over nine, and
+        // anyone quoting a pass rate from this data needs to see that.
+        if (assessedText != null)
+            assessedText.text = rubric.AssessedCount + " of 9 assessed this run";
+
+        if (verdictText != null) verdictText.text = rubric.Verdict;
+
+        if (governorNote != null)
+        {
+            bool governed = vehicle != null && vehicle.imposedSpeedCapMph > 0f;
+
+            governorNote.text = governed
+                ? "Speed limited to " + vehicle.imposedSpeedCapMph.ToString("F0") +
+                  " mph after " + rubric.TotalViolations + " faults."
+                : "";
+        }
+    }
+
+    void PopulateSummary()
+    {
         bool onRoute = route != null && route.WaypointCount > 0;
 
         if (summaryLabels != null)
+            // No passenger count. It is left over from the shuttle-route idea and
+            // says nothing about how the person drove, which is all this report is
+            // for.
             summaryLabels.text =
                 "Route\n" +
-                "Passengers carried\n" +
-                "Duration\n" +
                 "Distance\n" +
                 "Average speed\n" +
-                "Top speed";
+                "Top speed\n" +
+                "Faults";
 
-        if (summaryValues != null)
-            summaryValues.text =
-                Colour(onRoute
-                           ? (route.RouteComplete
-                                  ? "Completed"
-                                  : route.WaypointsReached + " of " + route.WaypointCount + " stops")
-                           : "Free drive",
-                       !onRoute ? Plain : route.RouteComplete ? Good : Warn) + "\n" +
-                Colour(onRoute ? route.PassengersCarried.ToString() : "-", Plain) + "\n" +
-                Colour(DriveScorer.FormatTime(scorer.DurationSeconds), Plain) + "\n" +
-                Colour(scorer.DistanceMetres.ToString("F0") + " m", Plain) + "\n" +
-                Colour(scorer.MeanSpeedMph.ToString("F1") + " mph", Plain) + "\n" +
-                Colour(scorer.TopSpeedMph.ToString("F1") + " mph",
-                       scorer.TopSpeedMph > scorer.speedLimitMph + 10f ? Bad :
-                       scorer.TopSpeedMph > scorer.speedLimitMph ? Warn : Good);
+        if (summaryValues == null) return;
 
-        // ---- what it cost ------------------------------------------------------
-        if (eventLabels != null)
-            eventLabels.text =
-                "Over the limit\n" +
-                "Stop signs obeyed\n" +
-                "Crossings yielded\n" +
-                "Harsh braking\n" +
-                "Harsh cornering\n" +
-                "Pedestrian near miss\n" +
-                "Collisions";
-
-        if (eventValues != null)
-            eventValues.text =
-                Row(scorer.PercentOverLimit.ToString("F0") + "% of drive",
-                    scorer.SpeedingDeduction) + "\n" +
-                Ratio(scorer.StopSignsEncountered - scorer.StopSignViolations,
-                      scorer.StopSignsEncountered, scorer.StopSignDeduction) + "\n" +
-                Ratio(scorer.CrosswalksEncountered - scorer.YieldViolations,
-                      scorer.CrosswalksEncountered, scorer.YieldDeduction) + "\n" +
-                Row(scorer.HardBrakes + "  (" + scorer.BrakesPerMinute.ToString("F1") + "/min)",
-                    scorer.BrakingDeduction) + "\n" +
-                Row(scorer.HardCorners + "  (" + scorer.CornersPerMinute.ToString("F1") + "/min)",
-                    scorer.CorneringDeduction) + "\n" +
-                Row(scorer.NearMisses.ToString(), scorer.NearMissDeduction) + "\n" +
-                Row(scorer.Collisions.ToString(), scorer.CollisionDeduction);
+        summaryValues.text =
+            Colour(onRoute
+                       ? (route.RouteComplete
+                              ? "Completed"
+                              : route.WaypointsReached + " of " + route.WaypointCount + " stops")
+                       : "Free drive",
+                   !onRoute ? Plain : route.RouteComplete ? Good : Warn) + "\n" +
+            Colour(scorer.DistanceMetres.ToString("F0") + " m", Plain) + "\n" +
+            Colour(scorer.MeanSpeedMph.ToString("F1") + " mph", Plain) + "\n" +
+            // Amber once past the sign, red only once past what is tolerated, so the
+            // colour agrees with what was actually scored.
+            Colour(scorer.TopSpeedMph.ToString("F1") + " mph",
+                   scorer.TopSpeedMph > scorer.ToleratedSpeedMph ? Bad :
+                   scorer.TopSpeedMph > scorer.speedLimitMph ? Warn : Good) + "\n" +
+            Colour(rubric != null ? rubric.TotalViolations.ToString() : "-",
+                   rubric == null ? Plain :
+                   rubric.TotalViolations == 0 ? Good :
+                   rubric.TotalViolations < 5 ? Warn : Bad);
     }
+
+    // ----------------------------------------------------------------- elements
 
     /// <summary>
-    /// "4 / 5" with what it cost beside it, or a dash when the route had none of
-    /// that kind. Showing 0 / 0 would read as a failure on a route with no stop
-    /// signs on it.
+    /// One line per element in four parallel columns.
+    ///
+    /// Four rects rather than one, because the number, the name, the verdict and the
+    /// percentage each need their own alignment. Packing them into a single string
+    /// is what made the double-digit rows step sideways and the "not assessed"
+    /// markers collide with the longer names.
     /// </summary>
-    static string Ratio(int obeyed, int total, float deduction)
+    void PopulateElements()
     {
-        if (total == 0) return Colour("-", Plain);
-        return Row(obeyed + " / " + total, deduction);
-    }
+        if (rubric == null) return;
 
-    /// <summary>A value plus what it cost, coloured by how much that was.</summary>
-    static string Row(string value, float deduction)
-    {
-        string colour = deduction >= 10f ? Bad : deduction >= 3f ? Warn : Good;
-        string cost = deduction >= 0.5f ? "  <size=13>-" + deduction.ToString("F0") + "</size>" : "";
-        return Colour(value + cost, colour);
+        string numbers = "", names = "", results = "", scores = "";
+        int line = 0;
+
+        foreach (NcElement element in System.Enum.GetValues(typeof(NcElement)))
+        {
+            ElementResult r = rubric.Result(element);
+
+            string rowColour = !r.Assessed ? Faint : r.Passed ? Plain : Plain;
+            string verdictColour = !r.Assessed ? Faint : r.Passed ? Good : Bad;
+
+            numbers += Colour((line + 1) + ".", !r.Assessed ? Faint : "#9EADBF");
+            names += Colour(NcRubric.Label(element), !r.Assessed ? Faint : rowColour);
+
+            if (!r.Assessed)
+            {
+                results += "";
+                scores += Colour("not assessed", Faint);
+            }
+            else if (r.CriticalFailure)
+            {
+                results += Colour("FAIL", Bad);
+                scores += Colour("critical", Bad);
+            }
+            else
+            {
+                results += Colour(r.Passed ? "PASS" : "FAIL", verdictColour);
+                scores += Colour((r.Proficiency * 100f).ToString("F0") + "%", verdictColour);
+            }
+
+            line++;
+
+            // Length, not Length - 1. Getting this wrong drops the newline before the
+            // last row, so the ninth element is drawn on the same line as the eighth
+            // in every column at once: "TurningTurn signals and horn", "FAILFAIL".
+            if (line < System.Enum.GetValues(typeof(NcElement)).Length)
+            {
+                numbers += "\n"; names += "\n"; results += "\n"; scores += "\n";
+            }
+        }
+
+        if (elementNumbers != null) elementNumbers.text = numbers;
+        if (elementNames != null) elementNames.text = names;
+        if (elementResults != null) elementResults.text = results;
+        if (elementScores != null) elementScores.text = scores;
     }
 
     static string Colour(string text, string hex)
     {
         return "<color=" + hex + ">" + text + "</color>";
-    }
-
-    static Color GradeColour(int score)
-    {
-        if (score >= 80) return new Color(0.44f, 0.81f, 0.55f);
-        if (score >= 60) return new Color(1f, 0.78f, 0.27f);
-        return new Color(1f, 0.42f, 0.34f);
     }
 
     // ------------------------------------------------------------------ buttons
@@ -233,15 +315,8 @@ public class DebriefScreen : MonoBehaviour
         else
         {
             Debug.LogError("[DebriefScreen] \"" + menuSceneName + "\" is not in the " +
-                           "build settings. Run NCAT → Configure Build Scenes.");
+                           "build settings. Run NCAT > Configure Build Scenes.");
         }
-    }
-
-    void OnDestroy()
-    {
-        // A scene reload with timeScale still at zero would leave the game frozen
-        // with no way back.
-        Time.timeScale = 1f;
     }
 
     /// <summary>
@@ -252,8 +327,8 @@ public class DebriefScreen : MonoBehaviour
     /// sitting over the game, and two of them stacked passed under 2% of the light
     /// through, which looked like the whole game had lost brightness and contrast.
     ///
-    /// Stepping up one level when the parent is not the Canvas itself repairs
-    /// scenes that were already built, without anyone re-running the setup.
+    /// Stepping up one level when the parent is not the Canvas itself repairs scenes
+    /// that were already built, without anyone re-running the setup.
     /// </summary>
     GameObject Overlay()
     {
@@ -265,4 +340,10 @@ public class DebriefScreen : MonoBehaviour
         return panel;
     }
 
+    void OnDestroy()
+    {
+        // A scene reload with timeScale still at zero would leave the game frozen
+        // with no way back.
+        Time.timeScale = 1f;
+    }
 }

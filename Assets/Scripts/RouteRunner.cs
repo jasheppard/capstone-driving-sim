@@ -60,6 +60,7 @@ public class RouteRunner : MonoBehaviour
 
     [Header("References")]
     public DriveScorer scorer;
+    public NcRubric rubric;
     public DebriefScreen debrief;
     public Speedometer speedometer;
 
@@ -96,6 +97,18 @@ public class RouteRunner : MonoBehaviour
     float dwellFor;
     bool stopSatisfied;
     bool yieldFailed;
+
+    // Traffic signals are judged on what the light was doing when the bus arrived,
+    // not on what it is doing now. Entering on green and still being in the junction
+    // when it turns red is not running a red light, and scoring it as one would
+    // punish a driver for the cycle rather than for their driving.
+    bool enteredOnRed;
+    bool signalViolated;
+
+    // Approach speed at the moment the zone was entered. The road test asks whether
+    // you arrived under control, which is a question about the approach, not about
+    // how slowly you were going once you were already in the junction.
+    float entrySpeedMph;
 
     float alertRemaining;
     float nextPedestrianRefresh;
@@ -144,6 +157,8 @@ public class RouteRunner : MonoBehaviour
 
         body = vehicle.GetComponent<Rigidbody>();
         if (scorer == null) scorer = vehicle.GetComponent<DriveScorer>();
+        if (rubric == null) rubric = vehicle.GetComponent<NcRubric>();
+        if (rubric == null) rubric = FindObjectOfType<NcRubric>();
         if (debrief == null) debrief = FindObjectOfType<DebriefScreen>();
         if (speedometer == null) speedometer = FindObjectOfType<Speedometer>();
 
@@ -184,7 +199,7 @@ public class RouteRunner : MonoBehaviour
 
         bool nowInZone = distance <= target.radius;
 
-        if (nowInZone && !inZone) OnEnterZone(target);
+        if (nowInZone && !inZone) OnEnterZone(target, speedMph);
         inZone = nowInZone;
 
         if (nowInZone) JudgeInZone(target, speedMph, stopped, dt);
@@ -197,13 +212,15 @@ public class RouteRunner : MonoBehaviour
 
     bool enteredThisWaypoint;
 
-    void OnEnterZone(RouteWaypoint target)
+    void OnEnterZone(RouteWaypoint target, float speedMph)
     {
         enteredThisWaypoint = true;
         stoppedFor = 0f;
         dwellFor = 0f;
         stopSatisfied = false;
         yieldFailed = false;
+        signalViolated = false;
+        entrySpeedMph = speedMph;
 
         switch (target.kind)
         {
@@ -215,6 +232,16 @@ public class RouteRunner : MonoBehaviour
                 break;
             case RouteWaypoint.Kind.BusStop:
                 Alert("BUS STOP: stop for boarding");
+                break;
+
+            case RouteWaypoint.Kind.TrafficSignal:
+                enteredOnRed = target.CurrentLight == RouteWaypoint.Light.Red;
+                Alert(enteredOnRed ? "RED LIGHT: stop and wait"
+                                   : "SIGNAL: " + target.CurrentLight.ToString().ToLowerInvariant());
+                break;
+
+            case RouteWaypoint.Kind.Intersection:
+                Alert("INTERSECTION: slow and check");
                 break;
         }
     }
@@ -269,6 +296,26 @@ public class RouteRunner : MonoBehaviour
                     Alert("FAILED TO YIELD");
                 }
                 break;
+
+            case RouteWaypoint.Kind.TrafficSignal:
+                // Arrived on red. Holding still clears it; carrying on through does
+                // not. Waiting for green and then going is the correct behaviour and
+                // records no violation.
+                if (!enteredOnRed) break;
+
+                if (stopped) stoppedFor += dt;
+
+                if (stoppedFor >= stopHoldSeconds && !stopSatisfied)
+                {
+                    stopSatisfied = true;
+                    Alert("Stopped at the light: go on green");
+                }
+                else if (!stopSatisfied && speedMph > yieldSpeedMph && !signalViolated)
+                {
+                    signalViolated = true;
+                    Alert("RAN A RED LIGHT");
+                }
+                break;
         }
     }
 
@@ -294,18 +341,39 @@ public class RouteRunner : MonoBehaviour
         {
             WaypointsReached++;
 
+            // Every judgement is made here, on the way out of the zone, and reported
+            // to the rubric as one opportunity at one element of the road test.
             switch (target.kind)
             {
                 case RouteWaypoint.Kind.StopSign:
-                    if (scorer != null) scorer.RegisterStopSign(!stopSatisfied);
+                    Report(NcElement.StopSigns, !stopSatisfied, "Rolled the stop sign");
                     if (!stopSatisfied) Alert("Rolled through the stop sign");
                     break;
 
                 case RouteWaypoint.Kind.Crosswalk:
-                    if (scorer != null) scorer.RegisterCrosswalk(yieldFailed);
+                    Report(NcElement.YieldToPedestrians, yieldFailed,
+                           "Failed to yield at a crossing");
+                    break;
+
+                case RouteWaypoint.Kind.TrafficSignal:
+                    // Only an arrival on red is a test of the driver. Arriving on
+                    // green asks nothing of them, so it is not counted as an
+                    // opportunity either way.
+                    if (enteredOnRed)
+                        Report(NcElement.TrafficSignals, signalViolated, "Ran a red light");
+                    break;
+
+                case RouteWaypoint.Kind.Intersection:
+                    bool tooFast = entrySpeedMph > target.speedLimitMph;
+                    Report(NcElement.IntersectionApproach, tooFast,
+                           "Entered the intersection at " + entrySpeedMph.ToString("F0") + " mph");
+                    if (tooFast) Alert("TOO FAST INTO THE INTERSECTION");
                     break;
 
                 case RouteWaypoint.Kind.BusStop:
+                    // Pulling in and away at a stop is the road test's "stopping,
+                    // starting and parking", so the bus stop scores it.
+                    Report(NcElement.Stopping, !stopSatisfied, "Missed the bus stop");
                     if (!stopSatisfied) Alert("Missed the stop: passengers left behind");
                     break;
             }
@@ -317,6 +385,17 @@ public class RouteRunner : MonoBehaviour
 
         if (index >= waypoints.Count) Complete();
         else EnterWaypoint();
+    }
+
+    /// <summary>
+    /// One opportunity at one element of the road test, passed or failed.
+    ///
+    /// Wrapped rather than called directly so a scene with no rubric on the car
+    /// still drives normally instead of throwing on every waypoint.
+    /// </summary>
+    void Report(NcElement element, bool violated, string detail)
+    {
+        if (rubric != null) rubric.Register(element, violated, detail);
     }
 
     /// <summary>Applies the new segment's speed limit as the next waypoint becomes current.</summary>
@@ -409,6 +488,14 @@ public class RouteRunner : MonoBehaviour
 
             case RouteWaypoint.Kind.Crosswalk:
                 return PedestrianInCrossing(target) ? "YIELD" : "clear";
+
+            case RouteWaypoint.Kind.TrafficSignal:
+                if (target.CurrentLight == RouteWaypoint.Light.Red)
+                    return stopSatisfied ? "waiting" : "RED";
+                return target.CurrentLight == RouteWaypoint.Light.Amber ? "AMBER" : "green";
+
+            case RouteWaypoint.Kind.Intersection:
+                return "check both ways";
 
             default:
                 return "arrived";

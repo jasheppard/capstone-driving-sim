@@ -1,0 +1,2 @@
+﻿driver,time_s,speed_kmh,throttle,brake,steer_input,yaw_rate_dps,lateral_accel_ms2,speed_change_ms2,nearest_ped_m,peds_within_15m,collisions_cum,distance_m,pos_x,pos_z
+Christian,0.0200,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,0.0000,29.0596,0,0,0.0000,5.9500,-1.5100

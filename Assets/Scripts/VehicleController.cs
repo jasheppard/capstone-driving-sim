@@ -158,6 +158,9 @@ public class VehicleController : MonoBehaviour
     bool isGrounded;
     float currentSteerAngle;        // degrees, eased toward the input
 
+    /// <summary>Where the front wheels are pointing, in degrees. Read by the indicator self-cancel.</summary>
+    public float CurrentSteerAngle { get { return currentSteerAngle; } }
+
     /// <summary>Which way the vehicle counts as pointing, honouring the invert toggle.</summary>
     Vector3 Nose { get { return invertForward ? -transform.forward : transform.forward; } }
     Vector3 Side { get { return invertForward ? -transform.right : transform.right; } }
@@ -214,6 +217,18 @@ public class VehicleController : MonoBehaviour
         bool braking;
         ReadInput(out throttle, out steerInput, out braking);
 
+        ReadSignals(dt);
+
+        // The examiner stop. Throttle is locked out and the brake held on, which
+        // brings the bus down under its own braking model rather than by teleporting
+        // it to a halt. Steering is left alone so it can still be kept straight.
+        if (forcedStopSeconds > 0f)
+        {
+            forcedStopSeconds -= dt;
+            throttle = 0f;
+            braking = true;
+        }
+
         isGrounded = CheckGrounded();
 
         // Signed speed along the vehicle's own axis. Negative means reversing.
@@ -222,6 +237,24 @@ public class VehicleController : MonoBehaviour
         if (isGrounded)
         {
             forwardSpeed = UpdateLongitudinal(forwardSpeed, throttle, braking, dt);
+
+            // Hill hold. Off the throttle and nearly stopped, the vehicle stays put
+            // instead of creeping backwards down a slope.
+            //
+            // Real buses and coaches have exactly this: a brake that holds
+            // automatically once you are stationary and releases when you pull away,
+            // because rolling back into whatever is behind you is how transit
+            // vehicles have their most common low-speed accident. Modelling it is
+            // more faithful than leaving it out, not less.
+            //
+            // Only below the threshold, so it can never arrest a moving vehicle, and
+            // never while braking, so it cannot fight the brake.
+            if (hillHold && !braking && Mathf.Abs(throttle) < 0.01f &&
+                Mathf.Abs(forwardSpeed) < hillHoldSpeed)
+            {
+                forwardSpeed = 0f;
+            }
+
             UpdateSteering(forwardSpeed, steerInput, dt);
             ApplyVelocity(forwardSpeed);
 
@@ -234,6 +267,137 @@ public class VehicleController : MonoBehaviour
             Vector3 av = rb.angularVelocity;
             av.y = Mathf.Lerp(av.y, 0f, yawDamping);
             rb.angularVelocity = av;
+        }
+    }
+
+    // --------------------------------------------------------------- signalling
+
+    [Header("Hill hold")]
+    [Tooltip("Hold the vehicle still on a slope when the throttle is released, the " +
+             "way a transit vehicle's automatic hill brake does.")]
+    public bool hillHold = true;
+
+    [Tooltip("Speed below which the hold engages, in m/s. Kept low so it can only " +
+             "ever catch a vehicle that has already almost stopped, never arrest a " +
+             "moving one.")]
+    public float hillHoldSpeed = 0.6f;
+
+    [Header("Signalling")]
+    [Tooltip("Toggle the left indicator.")]
+    public KeyCode leftIndicatorKey = KeyCode.Q;
+
+    [Tooltip("Toggle the right indicator.")]
+    public KeyCode rightIndicatorKey = KeyCode.E;
+
+    public KeyCode hornKey = KeyCode.H;
+
+    [Tooltip("Seconds after which an indicator gives up and cancels itself, in case " +
+             "the self-cancel never triggers because the turn was never made.")]
+    public float indicatorTimeout = 12f;
+
+    public bool IndicatorLeft { get; private set; }
+    public bool IndicatorRight { get; private set; }
+    public bool IndicatorOn { get { return IndicatorLeft || IndicatorRight; } }
+    public bool HornOn { get; private set; }
+
+    float indicatorAge;
+    bool steeredIntoTurn;
+
+    /// <summary>
+    /// The indicators, including the self-cancel.
+    ///
+    /// A real stalk cancels when the wheel comes back through centre after being
+    /// turned, and that is what is modelled here: the indicator arms itself once the
+    /// steering has been deflected far enough in the direction being signalled, and
+    /// drops when the steering returns to near centre. Modelling it properly matters
+    /// because the road test scores signalling, and an indicator that stayed on for
+    /// the whole drive would pass every turn without the driver doing anything.
+    /// </summary>
+    void ReadSignals(float dt)
+    {
+        if (Input.GetKeyDown(leftIndicatorKey))
+        {
+            IndicatorLeft = !IndicatorLeft;
+            IndicatorRight = false;
+            indicatorAge = 0f;
+            steeredIntoTurn = false;
+        }
+
+        if (Input.GetKeyDown(rightIndicatorKey))
+        {
+            IndicatorRight = !IndicatorRight;
+            IndicatorLeft = false;
+            indicatorAge = 0f;
+            steeredIntoTurn = false;
+        }
+
+        HornOn = Input.GetKey(hornKey);
+
+#if ENABLE_INPUT_SYSTEM
+        Gamepad pad = Gamepad.current;
+        if (pad != null)
+        {
+            if (pad.leftShoulder.wasPressedThisFrame)
+            {
+                IndicatorLeft = !IndicatorLeft;
+                IndicatorRight = false;
+                indicatorAge = 0f;
+                steeredIntoTurn = false;
+            }
+
+            if (pad.rightShoulder.wasPressedThisFrame)
+            {
+                IndicatorRight = !IndicatorRight;
+                IndicatorLeft = false;
+                indicatorAge = 0f;
+                steeredIntoTurn = false;
+            }
+
+            if (pad.buttonEast.isPressed) HornOn = true;        // Circle
+        }
+#endif
+
+        if (!IndicatorOn) return;
+
+        indicatorAge += dt;
+
+        if (indicatorAge > indicatorTimeout)
+        {
+            IndicatorLeft = IndicatorRight = false;
+            return;
+        }
+
+        // Armed once the wheel has actually been turned the signalled way, cancelled
+        // when it comes back through centre.
+        float angle = CurrentSteerAngle;
+
+        if (IndicatorLeft && angle < -10f) steeredIntoTurn = true;
+        if (IndicatorRight && angle > 10f) steeredIntoTurn = true;
+
+        if (steeredIntoTurn && Mathf.Abs(angle) < 3f)
+            IndicatorLeft = IndicatorRight = false;
+    }
+
+    // ------------------------------------------------------------- consequences
+
+    [Header("Consequences")]
+    [Tooltip("Speed cap imposed from outside, in mph, used by the infraction " +
+             "governor. Zero or less means no cap. Never raises the governed top " +
+             "speed, only lowers it.")]
+    public float imposedSpeedCapMph = 0f;
+
+    [Tooltip("While above zero the throttle is locked out and the brake is applied, " +
+             "which is how the examiner stop brings the bus to a halt.")]
+    public float forcedStopSeconds = 0f;
+
+    /// <summary>The speed the bus will actually govern to right now.</summary>
+    public float EffectiveTopSpeedMph
+    {
+        get
+        {
+            return imposedSpeedCapMph > 0f
+                ? Mathf.Min(governedTopSpeedMph, imposedSpeedCapMph)
+                : governedTopSpeedMph;
         }
     }
 
@@ -292,7 +456,10 @@ public class VehicleController : MonoBehaviour
         // ---- engine -----------------------------------------------------------
         if (throttle > 0.01f)
         {
-            if (mph < governedTopSpeedMph)
+            // EffectiveTopSpeedMph rather than the governed figure, so the
+            // infraction governor can turn the bus down without this class needing
+            // to know why.
+            if (mph < EffectiveTopSpeedMph)
                 driveAccel += MaxDriveAcceleration(speed) * throttle;
         }
         else if (throttle < -0.01f)
