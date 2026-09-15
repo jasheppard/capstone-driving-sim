@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -73,7 +73,30 @@ public class DrivingTelemetryLogger : MonoBehaviour
     string driverName = DriverIdentity.Unknown;
 
     float sessionTime;
-    float nextSampleTime;
+
+    // Sampling is counted in physics steps rather than scheduled against a float
+    // clock. Comparing an accumulated float against "now + 0.1" looks equivalent and
+    // is not: sessionTime advances in 0.02 s steps whose sum drifts a few
+    // microseconds low, so the comparison fails on the fifth step and the sample
+    // lands on the sixth. A third of one recorded run came out 0.12 s apart while the
+    // writer still divided by 0.10, inflating every yaw rate, lateral acceleration
+    // and deceleration on those rows by twenty per cent -- enough to put the bus
+    // above its own cornering limit in the data. Counting steps cannot drift, and the
+    // elapsed time is measured rather than assumed.
+    int stepsPerSample;
+    int stepsSinceSample;
+    float timeSinceSample;
+
+    // Lateral acceleration is a product of two changing quantities, v * omega, so
+    // unlike speed or heading it cannot be recovered from the endpoints of a sample
+    // window. Taking the speed at the end of the window and the average yaw rate
+    // across it overstates the load whenever the driver was accelerating through the
+    // corner, which is how a run came out at 0.47 g against a model that caps
+    // cornering at 0.45 g. So it is integrated every physics step and the row carries
+    // the true time average over the window.
+    float lateralIntegral;
+    float stepHeading;
+    bool stepHeadingValid;
     int rowCount;
 
     float previousSpeed;            // m/s, for longitudinal acceleration
@@ -95,6 +118,17 @@ public class DrivingTelemetryLogger : MonoBehaviour
         previousPosition = transform.position;
         previousHeading = transform.eulerAngles.y;
         previousSpeed = 0f;
+
+        // How many physics steps make one sample. Rounded, so a rate that is not a
+        // whole number of steps lands on the nearest one and stays there for the whole
+        // run instead of alternating between two intervals.
+        float wanted = 1f / Mathf.Max(1f, sampleRate);
+        stepsPerSample = Mathf.Max(1, Mathf.RoundToInt(wanted / Time.fixedDeltaTime));
+
+        Debug.Log("[Telemetry] Sampling every " + stepsPerSample + " physics steps = " +
+                  (stepsPerSample * Time.fixedDeltaTime).ToString("F3") + " s per row " +
+                  "(" + (1f / (stepsPerSample * Time.fixedDeltaTime)).ToString("F1") + " Hz). " +
+                  "Rates are divided by the elapsed time actually measured.");
 
         OpenFile();
     }
@@ -133,16 +167,45 @@ public class DrivingTelemetryLogger : MonoBehaviour
 
         if (sessionTime < warmupSeconds) return;
         if (writer == null) return;
-        if (sessionTime < nextSampleTime) return;
 
-        nextSampleTime = sessionTime + 1f / Mathf.Max(1f, sampleRate);
+        // ---- per-step integration ---------------------------------------------
+        float stepDt = Time.fixedDeltaTime;
+        float heading = transform.eulerAngles.y;
 
-        WriteSample();
+        if (stepHeadingValid)
+        {
+            float stepYaw = Mathf.DeltaAngle(stepHeading, heading) / stepDt;   // deg/s
+
+            Vector3 flatStep = body.velocity;
+            flatStep.y = 0f;
+
+            lateralIntegral += flatStep.magnitude * stepYaw * Mathf.Deg2Rad * stepDt;
+        }
+
+        stepHeading = heading;
+        stepHeadingValid = true;
+
+        stepsSinceSample++;
+        timeSinceSample += stepDt;
+
+        if (stepsSinceSample < stepsPerSample) return;
+
+        WriteSample(timeSinceSample);
+
+        stepsSinceSample = 0;
+        timeSinceSample = 0f;
+        lateralIntegral = 0f;
     }
 
-    void WriteSample()
+    /// <param name="dt">
+    /// Seconds actually elapsed since the previous sample. Passed in rather than
+    /// assumed from the sample rate, because every rate in the file is a difference
+    /// divided by this number and a wrong divisor is indistinguishable from harder
+    /// driving.
+    /// </param>
+    void WriteSample(float dt)
     {
-        float dt = 1f / Mathf.Max(1f, sampleRate);
+        if (dt <= 0f) dt = 1f / Mathf.Max(1f, sampleRate);
 
         // ---- motion -----------------------------------------------------------
         Vector3 velocity = body.velocity;
@@ -157,7 +220,9 @@ public class DrivingTelemetryLogger : MonoBehaviour
         // Lateral acceleration is v * omega. This is the sideways force the tyres
         // have to generate, and it is what actually breaks traction — a tight turn
         // at low speed and a gentle turn at high speed can load the car equally.
-        float lateralAccel = speedMs * (yawRate * Mathf.Deg2Rad);
+        // The time average of v * omega across the window, not the product of two
+        // window summaries. See lateralIntegral above for why the difference matters.
+        float lateralAccel = lateralIntegral / dt;
 
         float speedChange = (speedMs - previousSpeed) / dt;                // m/s^2
 

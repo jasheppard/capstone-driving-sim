@@ -71,10 +71,30 @@ public class SmoothGroundDrive : MonoBehaviour
     public float halfWidth = 1.1f;
 
     [Tooltip("How hard the vehicle is stopped when it meets something solid, in " +
-             "m/s^2. Firm but possible: removing the speed instantly instead reads " +
-             "to the scorer as a deceleration no vehicle could produce, and gets " +
-             "counted against the driver as harsh braking.")]
-    public float blockDeceleration = 8f;
+             "m/s^2. Left at zero it matches the vehicle's own braking rate, which " +
+             "is what you want: a block should never produce a deceleration the " +
+             "brakes could not, or the telemetry records something the vehicle " +
+             "cannot physically do. Set it above zero only to override that.")]
+    public float blockDeceleration = 0f;
+
+    /// <summary>
+    /// The rate a block actually sheds speed at.
+    ///
+    /// Matched to the vehicle's brakes by default. An earlier version deleted the
+    /// forward velocity outright, which the logger recorded as 0.88 g on a vehicle
+    /// whose brakes make 0.59 g; the fix after that shed speed at a fixed 8 m/s2,
+    /// which was better but still harder than the vehicle can brake. Anything
+    /// firmer than the brakes puts impossible rows in the data, and impossible rows
+    /// have to be explained away in every analysis that uses the file.
+    /// </summary>
+    float BlockRate
+    {
+        get
+        {
+            if (blockDeceleration > 0f) return blockDeceleration;
+            return vehicle != null ? vehicle.brakeDeceleration : 5.8f;
+        }
+    }
 
     [Header("Pedestrians")]
     [Tooltip("With collision off, people are found by proximity instead. This is how " +
@@ -89,6 +109,7 @@ public class SmoothGroundDrive : MonoBehaviour
     Rigidbody body;
     Collider hull;
     NcRubric rubric;
+    VehicleController vehicle;
 
     float groundOffset = 1f;      // origin to the bottom of the collider
     float lastGroundY;
@@ -103,6 +124,8 @@ public class SmoothGroundDrive : MonoBehaviour
         body = GetComponent<Rigidbody>();
         rubric = GetComponent<NcRubric>();
         if (rubric == null) rubric = FindObjectOfType<NcRubric>();
+
+        vehicle = GetComponent<VehicleController>();
 
         foreach (Collider candidate in GetComponentsInChildren<Collider>())
         {
@@ -234,7 +257,7 @@ public class SmoothGroundDrive : MonoBehaviour
             Vector3 velocity = body.velocity;
             Vector3 forward = Vector3.Project(velocity, heading);
 
-            float shed = blockDeceleration * Time.fixedDeltaTime;
+            float shed = BlockRate * Time.fixedDeltaTime;
             Vector3 slowed = Vector3.MoveTowards(forward, Vector3.zero, shed);
 
             body.velocity = velocity - forward + slowed;

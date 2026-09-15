@@ -126,6 +126,12 @@ public static class RoadTestSetup
         // and tile seams cannot block the bus or throw it into the air.
         SmoothGroundDrive ground = car.GetComponent<SmoothGroundDrive>();
         if (ground == null) ground = Undo.AddComponent<SmoothGroundDrive>(car);
+
+        // Zero means "match the vehicle's own brakes". Written explicitly because a
+        // component already in the scene keeps the 8 m/s2 it was serialised with,
+        // which is harder than the bus can brake and puts decelerations in the
+        // telemetry that the vehicle could not have produced.
+        ground.blockDeceleration = 0f;
         EditorUtility.SetDirty(ground);
 
         // ---- the judge ---------------------------------------------------------
