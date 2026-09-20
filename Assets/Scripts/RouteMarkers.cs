@@ -412,7 +412,7 @@ public class RouteMarkers : MonoBehaviour
         offScreenArrow.localRotation = Quaternion.Euler(0f, 0f, angle);
 
         Image image = offScreenArrow.GetComponent<Image>();
-        if (image != null) image.color = target.GizmoColour;
+        if (image != null) image.color = Color.yellow;
     }
 
     void OnDestroy()

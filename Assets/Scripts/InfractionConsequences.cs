@@ -67,10 +67,17 @@ public class InfractionConsequences : MonoBehaviour
     [Tooltip("Large centred text that names the element just failed.")]
     public Text flashLabel;
 
+    [Tooltip("Black panel behind the fault text so the warning is easy to read.")]
+    public Image flashBackground;
+
     [Tooltip("Small persistent text showing the running violation count.")]
     public Text tallyLabel;
 
+    [Tooltip("How long the fault flash remains visible.")]
     public float flashSeconds = 2.5f;
+
+    [Tooltip("Opacity of the black warning box behind the fault text.")]
+    [Range(0f, 1f)] public float flashBackgroundAlpha = 0.75f;
 
     // ---------------------------------------------------------------- internals
 
@@ -99,6 +106,11 @@ public class InfractionConsequences : MonoBehaviour
         rubric.OnViolation += OnViolation;
 
         if (flashLabel != null) flashLabel.text = "";
+        if (flashBackground != null)
+        {
+            flashBackground.gameObject.SetActive(false);
+            flashBackground.color = new Color(0f, 0f, 0f, flashBackgroundAlpha);
+        }
         UpdateTally();
     }
 
@@ -123,7 +135,11 @@ public class InfractionConsequences : MonoBehaviour
         // Unscaled, so a flash raised just before the debrief pauses the game does
         // not hang on screen behind the report.
         flashRemaining -= Time.unscaledDeltaTime;
-        if (flashRemaining <= 0f && flashLabel != null) flashLabel.text = "";
+        if (flashRemaining <= 0f)
+        {
+            if (flashLabel != null) flashLabel.text = "";
+            if (flashBackground != null) flashBackground.gameObject.SetActive(false);
+        }
     }
 
     // ------------------------------------------------------------------ reacting
@@ -177,6 +193,11 @@ public class InfractionConsequences : MonoBehaviour
             : message;
 
         flashLabel.text = line;
+        if (flashBackground != null)
+        {
+            flashBackground.color = new Color(0f, 0f, 0f, flashBackgroundAlpha);
+            flashBackground.gameObject.SetActive(true);
+        }
         flashRemaining = flashSeconds;
     }
 

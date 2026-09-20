@@ -1,0 +1,28 @@
+NC A&T Campus Driving Safety Simulator: Drive Report
+Driver: Player
+Generated Thursday, September 10, 2026 5:08 PM
+----------------------------------------------------------
+
+SAFETY SCORE   14 / 100   (F)
+Would not be permitted to carry passengers.
+
+Drive
+  Duration              8m 21s
+  Distance              2025 m
+  Average speed         13.8 mph
+  Top speed             36.6 mph
+
+Safety events   (scored as rates, so drive length does not skew the result)
+  Time over 20 mph      73 s  (14% of the drive)   -4
+  Harsh braking         78  (9.3/min)   -20
+  Harsh cornering       90  (10.8/min)   -20
+  Pedestrian near miss  1   -1
+  Collisions            64   -40
+
+Peaks
+  Hardest braking       1.98 g
+  Peak cornering load   1.50 g
+  Closest pedestrian    2.4 m
+
+Thresholds used: 0.3 g braking, 0.25 g cornering, 2.5 m near miss.
+Penalty weights are a defined rubric, not values derived from crash data.
