@@ -1,0 +1,10 @@
+driver,element,opportunities,violations,proficiency_pct,assessed,passed,critical
+Slim_thick_ig_baddie,Stop signs,0,0,,0,,0
+Slim_thick_ig_baddie,Yielding to pedestrians,2,2,0.0,1,0,0
+Slim_thick_ig_baddie,Safe speed for conditions,31,3,90.3,1,1,0
+Slim_thick_ig_baddie,Stopping,155,26,83.2,1,1,0
+Slim_thick_ig_baddie,Starting,9,9,0.0,1,0,0
+Slim_thick_ig_baddie,Approaching intersections,0,0,,0,,0
+Slim_thick_ig_baddie,Traffic signals,0,0,,0,,0
+Slim_thick_ig_baddie,Turning,11,10,9.1,1,0,0
+Slim_thick_ig_baddie,Turn signals and horn,11,5,54.5,1,0,0

@@ -155,6 +155,7 @@ public class VehicleController : MonoBehaviour
     const float MsToMph = 2.23694f;
 
     Rigidbody rb;
+    BusRoadConstraint roadConstraint;
     bool isGrounded;
     float currentSteerAngle;        // degrees, eased toward the input
 
@@ -168,6 +169,7 @@ public class VehicleController : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        roadConstraint = GetComponent<BusRoadConstraint>();
 
         if (overrideRigidbodyMass) rb.mass = massKg;
 
@@ -217,6 +219,13 @@ public class VehicleController : MonoBehaviour
         bool braking;
         ReadInput(out throttle, out steerInput, out braking);
 
+        float roadSpeedMultiplier = 1f;
+        if (roadConstraint != null)
+        {
+            (roadSpeedMultiplier, steerInput) =
+                roadConstraint.GetDriveCorrection(steerInput);
+        }
+
         ReadSignals(dt);
 
         // The examiner stop. Throttle is locked out and the brake held on, which
@@ -236,7 +245,7 @@ public class VehicleController : MonoBehaviour
 
         if (isGrounded)
         {
-            forwardSpeed = UpdateLongitudinal(forwardSpeed, throttle, braking, dt);
+            forwardSpeed = UpdateLongitudinal(forwardSpeed, throttle, braking, dt, roadSpeedMultiplier);
 
             // Hill hold. Off the throttle and nearly stopped, the vehicle stays put
             // instead of creeping backwards down a slope.
@@ -254,9 +263,13 @@ public class VehicleController : MonoBehaviour
             {
                 forwardSpeed = 0f;
             }
+            float finalSpeed = forwardSpeed;
+            float finalSteer = steerInput;
+            Debug.Log("[VehicleController] finalSpeed=" + finalSpeed +
+                      " m/s, finalSteer=" + finalSteer);
 
-            UpdateSteering(forwardSpeed, steerInput, dt);
-            ApplyVelocity(forwardSpeed);
+            UpdateSteering(finalSpeed, finalSteer, dt);
+            ApplyVelocity(finalSpeed);
 
             rb.AddForce(Vector3.down * groundStick, ForceMode.Acceleration);
         }
@@ -440,7 +453,7 @@ public class VehicleController : MonoBehaviour
     /// stop, it does not then push it backwards. Applying them as one number is
     /// how simulations end up with cars that creep backwards at a standstill.
     /// </summary>
-    float UpdateLongitudinal(float v, float throttle, bool braking, float dt)
+    float UpdateLongitudinal(float v, float throttle, bool braking, float dt, float roadSpeedMultiplier)
     {
         float speed = Mathf.Abs(v);
         float mph = v * MsToMph;
@@ -460,7 +473,7 @@ public class VehicleController : MonoBehaviour
             // infraction governor can turn the bus down without this class needing
             // to know why.
             if (mph < EffectiveTopSpeedMph)
-                driveAccel += MaxDriveAcceleration(speed) * throttle;
+                driveAccel += MaxDriveAcceleration(speed) * throttle * roadSpeedMultiplier;
         }
         else if (throttle < -0.01f)
         {
@@ -473,7 +486,7 @@ public class VehicleController : MonoBehaviour
             else if (mph > -maxReverseSpeedMph)
             {
                 // Reverse gear is short: plenty of force, very little speed.
-                driveAccel -= MaxDriveAcceleration(speed) * -throttle;
+                driveAccel -= MaxDriveAcceleration(speed) * -throttle * roadSpeedMultiplier;
             }
         }
         else
