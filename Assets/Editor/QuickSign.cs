@@ -21,16 +21,34 @@ public static class QuickSign
 {
     const string RouteName = "Route";
 
-    [MenuItem("NCAT/Place Stop Sign Here", false, 20)]
+    [MenuItem("NCAT/Place Stop Sign Here", false, 92)]
     public static void StopSign()
     {
         Place(RouteWaypoint.Kind.StopSign, "StopSign");
     }
 
-    [MenuItem("NCAT/Place Traffic Light Here", false, 21)]
+    [MenuItem("NCAT/Place Traffic Light Here", false, 93)]
     public static void TrafficLight()
     {
-        Place(RouteWaypoint.Kind.TrafficSignal, "TrafficLight");
+        // The mast arm one if it has been built, the old pedestal one otherwise.
+        Place(RouteWaypoint.Kind.TrafficSignal,
+              FindPrefab("TrafficLightMast") != null ? "TrafficLightMast" : "TrafficLight");
+    }
+
+    /// <summary>
+    /// An Aggie Shuttle stop.
+    ///
+    /// Scored under "stopping, starting and parking": the driver has to actually come
+    /// to rest at it, wait while passengers board, and pull away again. That makes it
+    /// the one kind of waypoint that tests the Stopping element without relying on
+    /// judging how gently the bus was braked, which is not worth scoring on scanned
+    /// terrain. Place two or three around a route and the element goes from untested
+    /// to properly assessed.
+    /// </summary>
+    [MenuItem("NCAT/Place Shuttle Stop Here", false, 96)]
+    public static void ShuttleStop()
+    {
+        Place(RouteWaypoint.Kind.BusStop, "ShuttleStop");
     }
 
     /// <summary>
@@ -38,7 +56,7 @@ public static class QuickSign
     /// "approaching intersections", which is the element that asks whether you came
     /// in under control.
     /// </summary>
-    [MenuItem("NCAT/Place Intersection Here", false, 22)]
+    [MenuItem("NCAT/Place Intersection Here", false, 95)]
     public static void Intersection()
     {
         Place(RouteWaypoint.Kind.Intersection, null);
@@ -48,7 +66,7 @@ public static class QuickSign
     /// A crossing. Only tests the driver when somebody is actually in it, so put
     /// these where the pedestrian spawner puts people.
     /// </summary>
-    [MenuItem("NCAT/Place Crosswalk Here", false, 23)]
+    [MenuItem("NCAT/Place Crosswalk Here", false, 94)]
     public static void Crosswalk()
     {
         Place(RouteWaypoint.Kind.Crosswalk, null);
@@ -137,6 +155,14 @@ public static class QuickSign
 
             if (toCamera.sqrMagnitude > 0.01f)
                 sign.transform.rotation = Quaternion.LookRotation(toCamera.normalized, Vector3.up);
+
+            if (kind == RouteWaypoint.Kind.BusStop)
+            {
+                // A stop with nobody at it is a stop with nothing to score. Two
+                // passengers is a normal campus pickup and gives the dwell something
+                // to be for.
+                waypoint.passengersWaiting = 2;
+            }
 
             if (kind == RouteWaypoint.Kind.TrafficSignal)
             {

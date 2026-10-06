@@ -12,7 +12,7 @@ public static class LoadingScreenSetup
     const string CanvasName = "LoadingCanvas";
     const string ScreenName = "LoadingScreen";
 
-    [MenuItem("NCAT/Set Up Loading Screen", false, 37)]
+    [MenuItem("NCAT/Set Up Loading Screen", false, 53)]
     public static void SetUp()
     {
         GameObject existing = GameObject.Find(CanvasName);

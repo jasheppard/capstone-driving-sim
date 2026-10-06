@@ -48,7 +48,7 @@ public static class VehicleColliderFix
     /// </summary>
     const float Clearance = 0.02f;
 
-    [MenuItem("NCAT/Fix Vehicle Collider", false, 35)]
+    [MenuItem("NCAT/Fix Vehicle Collider", false, 33)]
     public static void Fix()
     {
         GameObject car = GameObject.Find(CarName);

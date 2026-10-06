@@ -38,7 +38,7 @@ public static class SignPrefabBuilder
     /// <summary>A pedestal signal head on its pole, roughly.</summary>
     const float TrafficLightHeight = 3.6f;
 
-    [MenuItem("NCAT/Build Sign Prefabs", false, 19)]
+    [MenuItem("NCAT/Build Sign Prefabs", false, 80)]
     public static void Build()
     {
         Directory.CreateDirectory(PrefabFolder);

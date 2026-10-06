@@ -17,7 +17,7 @@ public static class RoadTestSetup
     const string CarName = "PlayerCar";
     const string CanvasName = "FaultCanvas";
 
-    [MenuItem("NCAT/Set Up Road Test", false, 36)]
+    [MenuItem("NCAT/Set Up Road Test", false, 57)]
     public static void SetUp()
     {
         GameObject car = GameObject.Find(CarName);

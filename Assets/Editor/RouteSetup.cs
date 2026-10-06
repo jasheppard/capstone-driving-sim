@@ -19,7 +19,7 @@ public static class RouteSetup
 
     // --------------------------------------------------------------- recording
 
-    [MenuItem("NCAT/Route/1. Arm Route Recording", false, 70)]
+    [MenuItem("NCAT/Route/1. Arm Route Recording", false, 100)]
     public static void ArmRecording()
     {
         GameObject car = GameObject.Find(CarName);
@@ -45,7 +45,7 @@ public static class RouteSetup
             "Then run NCAT → Route → 2. Import Recorded Route.");
     }
 
-    [MenuItem("NCAT/Route/Disarm Route Recording", false, 71)]
+    [MenuItem("NCAT/Route/Disarm Route Recording", false, 101)]
     public static void DisarmRecording()
     {
         GameObject car = GameObject.Find(CarName);
@@ -72,7 +72,7 @@ public static class RouteSetup
 
     [System.Serializable] class RouteData { public WaypointData[] waypoints; }
 
-    [MenuItem("NCAT/Route/2. Import Recorded Route", false, 72)]
+    [MenuItem("NCAT/Route/2. Import Recorded Route", false, 103)]
     public static void ImportRoute()
     {
         string root = Path.GetDirectoryName(Application.dataPath);
@@ -149,7 +149,7 @@ public static class RouteSetup
             "Now run NCAT → Route → 3. Set Up Route HUD, then save (Ctrl+S).");
     }
 
-    [MenuItem("NCAT/Route/Snap Route To Ground", false, 74)]
+    [MenuItem("NCAT/Route/Snap Route To Ground", false, 106)]
     public static void SnapToGround()
     {
         GameObject route = GameObject.Find(RouteName);
@@ -183,7 +183,7 @@ public static class RouteSetup
 
     // --------------------------------------------------------------------- HUD
 
-    [MenuItem("NCAT/Route/3. Set Up Route HUD", false, 73)]
+    [MenuItem("NCAT/Route/3. Set Up Route HUD", false, 107)]
     public static void SetUpHud()
     {
         GameObject canvasGO = GetOrCreateCanvas();

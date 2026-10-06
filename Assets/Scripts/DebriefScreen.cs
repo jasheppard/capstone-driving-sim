@@ -70,6 +70,7 @@ public class DebriefScreen : MonoBehaviour
 
     DriveScorer scorer;
     NcRubric rubric;
+    DriveTimer timer;
     RouteRunner route;
     VehicleController vehicle;
     bool shown;
@@ -78,6 +79,7 @@ public class DebriefScreen : MonoBehaviour
     {
         scorer = FindObjectOfType<DriveScorer>();
         rubric = FindObjectOfType<NcRubric>();
+        timer = FindObjectOfType<DriveTimer>();
         route = FindObjectOfType<RouteRunner>();      // optional, free driving has none
         vehicle = FindObjectOfType<VehicleController>();
 
@@ -124,6 +126,17 @@ public class DebriefScreen : MonoBehaviour
         shown = true;
         scorer.FinishDrive();       // this also calls Finish on the rubric
 
+        // Freeze the clock here rather than letting it notice next frame: the
+        // debrief sets timeScale to zero, and the number on this screen should be
+        // the one the driver last saw on the HUD.
+        if (timer != null) timer.Finish();
+
+        // Printed whether the route finished or not, because "I got back to the start
+        // and nothing happened" is otherwise impossible to tell apart from "the run
+        // ended normally".
+        RouteRunner runner = FindObjectOfType<RouteRunner>();
+        if (runner != null) Debug.Log("[Route] " + runner.Progress());
+
         Populate();
 
         if (Overlay() != null) Overlay().SetActive(true);
@@ -135,12 +148,28 @@ public class DebriefScreen : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
     }
 
+    /// <summary>
+    /// How long the drive took.
+    ///
+    /// The drive clock if there is one, because that is time spent actually driving:
+    /// it starts when the bus pulls away rather than when the scene loads, so it does
+    /// not charge the driver for the briefing, for Cesium streaming, or for however
+    /// long they sat deciding where to go. DriveScorer's own duration runs from the
+    /// first frame and is still the right basis for the per-minute rates, which is
+    /// why both exist.
+    /// </summary>
+    string DriveTime()
+    {
+        if (timer != null && timer.Running) return timer.Format(timer.ElapsedSeconds);
+        return DriveScorer.FormatTime(scorer.DurationSeconds);
+    }
+
     void Populate()
     {
         if (driverLine != null)
             driverLine.text = DriverIdentity.Name + "   ·   " +
                               System.DateTime.Now.ToString("d MMM yyyy") + "   ·   " +
-                              DriveScorer.FormatTime(scorer.DurationSeconds);
+                              DriveTime();
 
         PopulateResult();
         PopulateSummary();

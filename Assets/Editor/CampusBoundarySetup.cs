@@ -19,7 +19,7 @@ public static class CampusBoundarySetup
     const float TileRadius = 850f;
     const float WallRadius = 780f;
 
-    [MenuItem("NCAT/Set Up Campus Boundary", false, 60)]
+    [MenuItem("NCAT/Set Up Campus Boundary", false, 59)]
     public static void SetUp()
     {
         GameObject tileset = FindTileset();

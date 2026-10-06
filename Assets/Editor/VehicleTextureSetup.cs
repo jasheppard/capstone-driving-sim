@@ -19,7 +19,7 @@ public static class VehicleTextureSetup
     const string CarName = "PlayerCar";
     const string ModelChildName = "Model";
 
-    [MenuItem("NCAT/Wire Vehicle Textures", false, 11)]
+    [MenuItem("NCAT/Wire Vehicle Textures", false, 32)]
     public static void WireTextures()
     {
         GameObject car = GameObject.Find(CarName);

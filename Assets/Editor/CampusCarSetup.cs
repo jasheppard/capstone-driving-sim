@@ -25,7 +25,7 @@ public static class CampusCarSetup
     static readonly Vector3 CarScale = new Vector3(2f, 1.5f, 4.5f);
     static readonly Vector3 CameraOffset = new Vector3(0f, 2.5f, -2.5f);
 
-    [MenuItem("NCAT/Set Up Player Car", false, 0)]
+    [MenuItem("NCAT/Set Up Player Car", false, 20)]
     public static void SetUpPlayerCar()
     {
         GameObject car = GameObject.Find(CarName);
@@ -176,7 +176,7 @@ public static class CampusCarSetup
     /// preference to new defaults in the script — so editing defaults alone
     /// changes nothing on objects that already exist in your scene.
     /// </summary>
-    [MenuItem("NCAT/Apply Camera Framing", false, 10)]
+    [MenuItem("NCAT/Apply Camera Framing", false, 36)]
     public static void ApplyCameraFraming()
     {
         int touched = 0;
@@ -217,7 +217,7 @@ public static class CampusCarSetup
     /// applies to real builds. This overrides it for the editor, so you can work in
     /// the campus scene and still test the full flow from the menu.
     /// </summary>
-    [MenuItem("NCAT/Always Start Play at Main Menu", false, 41)]
+    [MenuItem("NCAT/Always Start Play at Main Menu", false, 182)]
     public static void StartPlayAtMainMenu()
     {
         const string menuScene = "Assets/Scenes/MainMenu.unity";
@@ -234,14 +234,14 @@ public static class CampusCarSetup
                   "Undo this with NCAT → Start Play at Current Scene.");
     }
 
-    [MenuItem("NCAT/Start Play at Current Scene", false, 42)]
+    [MenuItem("NCAT/Start Play at Current Scene", false, 183)]
     public static void StartPlayAtCurrentScene()
     {
         EditorSceneManager.playModeStartScene = null;
         Debug.Log("Play will now start at whichever scene is open: Unity's default.");
     }
 
-    [MenuItem("NCAT/Configure Build Scenes", false, 40)]
+    [MenuItem("NCAT/Configure Build Scenes", false, 181)]
     public static void ConfigureBuildScenes()
     {
         string menuScene = "Assets/Scenes/MainMenu.unity";
@@ -268,7 +268,7 @@ public static class CampusCarSetup
         Debug.Log("Build scenes set:\n  0: MainMenu (launches first)\n  1: SampleScene (the campus)");
     }
 
-    [MenuItem("NCAT/Enable Cesium Physics Meshes", false, 20)]
+    [MenuItem("NCAT/Enable Cesium Physics Meshes", false, 180)]
     public static void EnableCesiumPhysicsMeshesMenu()
     {
         int count = EnableCesiumPhysicsMeshes();

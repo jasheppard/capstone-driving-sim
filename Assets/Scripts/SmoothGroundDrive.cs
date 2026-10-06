@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -56,6 +56,12 @@ public class SmoothGroundDrive : MonoBehaviour
              "metres. Anything sharper than this is a scanning artefact rather than " +
              "a road, and is smoothed out instead of followed.")]
     public float maximumStep = 0.6f;
+
+    [Tooltip("How far above the bottom of the bus a surface still counts as ground, " +
+             "in metres. Anything higher is treated as overhead and driven under: " +
+             "tree canopy, a bridge, a walkway between buildings. Raise it only if " +
+             "the bus refuses to climb a genuinely steep ramp.")]
+    public float headroom = 1.5f;
 
     [Header("What still blocks you")]
     [Tooltip("Height above the ground at which something counts as an obstacle " +
@@ -178,17 +184,48 @@ public class SmoothGroundDrive : MonoBehaviour
     /// </summary>
     void Follow()
     {
-        RaycastHit hit;
+        // Everything the ray passes through, not just the first thing it meets.
+        //
+        // The first hit from above is whatever is highest: under a tree that is the
+        // canopy, and photogrammetry trees are part of the same mesh as the road, so
+        // nothing distinguishes them. Taking the first hit made the vehicle treat the
+        // treetop as the road and climb toward it, clamped to maximumStep per frame,
+        // which is exactly the slow float the driver sees.
+        //
+        // So every hit is collected and the ground is chosen as the highest surface
+        // that is not above the vehicle. Anything overhead is a canopy, a bridge or a
+        // walkway, and the vehicle drives under it rather than onto it.
         Vector3 start = transform.position + Vector3.up * 50f;
 
-        if (!Physics.Raycast(start, Vector3.down, out hit, 300f))
+        RaycastHit[] hits = Physics.RaycastAll(start, Vector3.down, 300f, ~0,
+                                               QueryTriggerInteraction.Ignore);
+
+        float ceiling = (hull != null ? hull.bounds.min.y : transform.position.y) + headroom;
+
+        float groundY = float.NegativeInfinity;
+        bool found = false;
+
+        for (int i = 0; i < hits.Length; i++)
         {
-            // Unstreamed tiles. Hold the last known height rather than falling.
+            if (hits[i].collider != null && hits[i].collider.transform.IsChildOf(transform))
+                continue;                                  // the vehicle's own colliders
+
+            float y = hits[i].point.y;
+            if (y > ceiling) continue;                     // overhead: canopy or bridge
+            if (y <= groundY) continue;
+
+            groundY = y;
+            found = true;
+        }
+
+        if (!found)
+        {
+            // Either the tiles have not streamed in, or every surface is overhead,
+            // which happens for a frame when the vehicle is dropped in from above.
+            // Holding the last known height is right for both.
             Hold();
             return;
         }
-
-        float groundY = hit.point.y;
 
         // A sudden jump in the reading is a tile seam or a scanned object passing
         // under the ray, not a real change in the road. Clamped so the bus does not

@@ -22,7 +22,7 @@ public static class VehicleModelSetup
     // The chassis box, in metres. Roughly a sedan.
     static readonly Vector3 ChassisSize = new Vector3(2f, 1.5f, 4.5f);
 
-    [MenuItem("NCAT/Attach Vehicle Model", false, 5)]
+    [MenuItem("NCAT/Attach Vehicle Model", false, 21)]
     public static void AttachSelectedModel()
     {
         GameObject modelAsset = Selection.activeObject as GameObject;
@@ -125,25 +125,25 @@ public static class VehicleModelSetup
     }
 
     /// <summary>For models authored facing -Z. Bounds cannot detect this, only your eyes can.</summary>
-    [MenuItem("NCAT/Flip Vehicle Model", false, 6)]
+    [MenuItem("NCAT/Flip Vehicle Model", false, 22)]
     public static void FlipVehicleModel() { Rotate(0f, 180f, 0f, "Flipped 180 degrees: it now faces the other way."); }
 
     // Models authored Z-up — common out of Blender and 3ds Max — arrive standing on
     // end or upside down. Unity's importer usually corrects this, but not always.
 
-    [MenuItem("NCAT/Rotate Vehicle - Pitch -90", false, 7)]
+    [MenuItem("NCAT/Rotate Vehicle - Pitch -90", false, 24)]
     public static void PitchDown() { Rotate(-90f, 0f, 0f, "Pitched -90 degrees. Typical fix for a Z-up export."); }
 
-    [MenuItem("NCAT/Rotate Vehicle - Pitch +90", false, 8)]
+    [MenuItem("NCAT/Rotate Vehicle - Pitch +90", false, 23)]
     public static void PitchUp() { Rotate(90f, 0f, 0f, "Pitched +90 degrees."); }
 
-    [MenuItem("NCAT/Rotate Vehicle - Roll 180", false, 9)]
+    [MenuItem("NCAT/Rotate Vehicle - Roll 180", false, 27)]
     public static void Roll() { Rotate(0f, 0f, 180f, "Rolled 180 degrees: that is the upside-down case."); }
 
-    [MenuItem("NCAT/Rotate Vehicle - Yaw +90", false, 10)]
+    [MenuItem("NCAT/Rotate Vehicle - Yaw +90", false, 25)]
     public static void YawRight() { Rotate(0f, 90f, 0f, "Turned 90 degrees right."); }
 
-    [MenuItem("NCAT/Rotate Vehicle - Yaw -90", false, 11)]
+    [MenuItem("NCAT/Rotate Vehicle - Yaw -90", false, 26)]
     public static void YawLeft() { Rotate(0f, -90f, 0f, "Turned 90 degrees left."); }
 
     /// <summary>Rotates the model and re-seats it, since turning it moves where its wheels are.</summary>

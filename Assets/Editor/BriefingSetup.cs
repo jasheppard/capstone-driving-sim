@@ -43,7 +43,7 @@ public static class BriefingSetup
     const float NumW = 40f;
     const float NameW = 350f;
 
-    [MenuItem("NCAT/Set Up Driver Briefing", false, 39)]
+    [MenuItem("NCAT/Set Up Driver Briefing", false, 55)]
     public static void SetUp()
     {
         GameObject old = GameObject.Find(CanvasName);

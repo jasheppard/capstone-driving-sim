@@ -59,7 +59,7 @@ public class RouteWaypoint : MonoBehaviour
 
     [Header("Rules")]
     [Tooltip("Speed limit in mph for the stretch of road LEADING TO this waypoint.")]
-    public float speedLimitMph = 20f;
+    public float speedLimitMph = 45f;
 
     [Tooltip("Bus stops only: seconds the bus must remain stopped while passengers board.")]
     public float dwellSeconds = 3f;
@@ -85,6 +85,13 @@ public class RouteWaypoint : MonoBehaviour
     [Tooltip("Seconds to shift this signal's cycle by, so a route with several " +
              "signals does not have all of them changing together.")]
     public float cycleOffset = 0f;
+
+    [Tooltip("Allow a right turn on red here, after a complete stop.\n\n" +
+             "North Carolina permits this at every signal unless a NO TURN ON RED sign " +
+             "says otherwise, so it is on by default. Turn it off for a junction that " +
+             "is signed against it: a one way street on the left, a blind approach, a " +
+             "crossing with its own phase.")]
+    public bool rightTurnOnRedAllowed = true;
 
     /// <summary>Where this signal is in its cycle right now.</summary>
     public enum Light { Green, Amber, Red }

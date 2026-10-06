@@ -112,6 +112,30 @@ public class VehicleController : MonoBehaviour
              "as when stationary.")]
     public float steerCutoffSpeed = 0.5f;
 
+    [Header("Speed sensitive steering")]
+    [Tooltip("Give less steering the faster you go. Leave this on.\n\n" +
+             "The cornering limit already stops the vehicle pulling impossible lateral " +
+             "loads, but it does that by clamping the RESULT. The driver still has full " +
+             "lock available at every speed, so the stick is twitchy everywhere and most " +
+             "of its travel does nothing but saturate against the clamp. You cannot hold " +
+             "a line through a corner with a control that is all or nothing.\n\n" +
+             "This scales how much lock the stick asks for, so the same stick movement " +
+             "means a parking manoeuvre at walking pace and a lane change at speed. It " +
+             "is what every real steering rack does and the reason a car is drivable.")]
+    public bool speedSensitiveSteering = true;
+
+    [Tooltip("At or below this speed in mph the full steering angle is available, so " +
+             "tight junctions and manoeuvring are unaffected.")]
+    public float fullSteerBelowMph = 8f;
+
+    [Tooltip("At or above this speed in mph the steering is reduced to its smallest " +
+             "share. Between the two it blends.")]
+    public float reducedSteerAboveMph = 26f;
+
+    [Tooltip("Share of the steering angle left at speed. Lower is calmer and harder to " +
+             "upset; too low and the vehicle will not change lanes.")]
+    [Range(0.2f, 1f)] public float highSpeedSteerFraction = 0.5f;
+
     [Header("Orientation")]
     [Tooltip("Tick this if W drives the vehicle backwards: flips which way the " +
              "body counts as forward.")]
@@ -537,10 +561,19 @@ public class VehicleController : MonoBehaviour
     /// </summary>
     void UpdateSteering(float forwardSpeed, float steerInput, float dt)
     {
+        // How much of the rack the driver is allowed to use at this speed.
+        float authority = SteerAuthority(forwardSpeed);
+
         // The wheels take time to turn. Instant lock-to-lock is what made the old
         // version dart sideways on a stick flick.
-        float targetAngle = steerInput * maxSteerAngle;
-        currentSteerAngle = Mathf.MoveTowards(currentSteerAngle, targetAngle, steerRate * dt);
+        //
+        // The rate is scaled by the same factor as the angle, so the time taken to
+        // reach full deflection stays the same at every speed. Scaling only the angle
+        // would make the steering feel progressively more sluggish as well as smaller,
+        // which reads as the controls going soggy rather than as the car settling.
+        float targetAngle = steerInput * maxSteerAngle * authority;
+        currentSteerAngle = Mathf.MoveTowards(currentSteerAngle, targetAngle,
+                                              steerRate * authority * dt);
 
         float speed = Mathf.Abs(forwardSpeed);
         if (speed * MsToMph < steerCutoffSpeed) return;
@@ -555,6 +588,24 @@ public class VehicleController : MonoBehaviour
 
         float yawDegrees = yawRate * Mathf.Rad2Deg * dt;
         rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yawDegrees, 0f));
+    }
+
+    /// <summary>
+    /// The share of the steering angle available at this speed, 0 to 1.
+    ///
+    /// Full below the low threshold so junctions, bus stops and parking are exactly as
+    /// sharp as they ever were; tapering to highSpeedSteerFraction above the high one.
+    /// </summary>
+    public float SteerAuthority(float forwardSpeed)
+    {
+        if (!speedSensitiveSteering) return 1f;
+
+        float mph = Mathf.Abs(forwardSpeed) * MsToMph;
+        float t = Mathf.InverseLerp(fullSteerBelowMph,
+                                    Mathf.Max(fullSteerBelowMph + 1f, reducedSteerAboveMph),
+                                    mph);
+
+        return Mathf.Lerp(1f, highSpeedSteerFraction, t);
     }
 
     // ----------------------------------------------------------------- tyres

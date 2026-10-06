@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
@@ -50,7 +50,7 @@ public static class VehicleTuning
     /// Switch back with Tune Vehicle: Campus Shuttle before collecting runs that go
     /// in the coursework.
     /// </summary>
-    [MenuItem("NCAT/Tune Vehicle: Arcade", false, 33)]
+    [MenuItem("NCAT/Tune Vehicle: Arcade", false, 34)]
     public static void Arcade()
     {
         VehicleController v = Find();
@@ -69,19 +69,51 @@ public static class VehicleTuning
         v.brakeDeceleration = 9.5f;    // 0.97 g, roughly a sports car on slicks
         v.engineBraking = 0.5f;
 
-        v.wheelbase = 3.6f;
-        v.maxSteerAngle = 42f;
-        v.steerRate = 220f;
-        v.maxLateralG = 0.9f;
+        // Steering, which is the whole point of this mode.
+        //
+        // The earlier numbers here were sharper than this and worse to drive, which
+        // is worth writing down because it is not obvious. 50 degrees of lock reached
+        // in a sixth of a second is not a responsive car, it is a switch: every stick
+        // movement saturates, so the only available inputs are "straight" and "full
+        // lock". You cannot hold an arc through a 90 degree junction with that, so you
+        // turn in late, snap past the apex and run across the far lane. The vehicle
+        // could already turn inside 3 m. Cornering was never the shortfall; holding a
+        // chosen line was.
+        //
+        // So: a little less lock, reached at half the rate, and the cornering limit
+        // brought down from the absurd to the merely quick. The result turns tighter
+        // than any junction on campus needs at junction speed, and stops trying to
+        // pivot on the spot at 25.
+        v.wheelbase = 3.0f;
+        v.maxSteerAngle = 44f;
+        v.steerRate = 150f;
+        v.maxLateralG = 1.2f;
+        v.lateralGrip = 1f;
 
-        v.governedTopSpeedMph = 70f;
+        // Full lock stays available up to 8 mph, so bus stops and tight junctions are
+        // exactly as sharp as before. Above that it tapers, which is what makes the
+        // car hold a line instead of darting.
+        v.speedSensitiveSteering = true;
+        v.fullSteerBelowMph = 8f;
+        v.reducedSteerAboveMph = 26f;
+        v.highSpeedSteerFraction = 0.5f;
+
+        // 50 rather than 70, so it agrees with NCAT -> Set Speed Limit. A preset
+        // that quietly reinstates a different top speed is how a setting appears
+        // to stop working for no reason.
+        v.governedTopSpeedMph = 50f;
 
         Apply(v,
             "Vehicle set to ARCADE. This is not a real vehicle.\n" +
             "  0 to 20 mph   1.0 s\n" +
             "  0 to 30 mph   1.6 s\n" +
             "  0 to 50 mph   2.8 s\n" +
-            "  top speed      70 mph,  stops from 30 mph in 31 ft\n\n" +
+            "  top speed      70 mph,  stops from 30 mph in 31 ft\n" +
+            "  turn radius    3.4 m at 10 mph, 4.0 m at 15, 6.8 m at 20\n" +
+            "  full steering lock below 8 mph, tapering to half above 26\n\n" +
+            "  A 90 degree junction wants about 15 mph. Take one at 20 and the turn\n" +
+            "  needs 6.8 m, which is most of the road: slowing for it is the point,\n" +
+            "  and approach speed is scored\n\n" +
             "  Scoring is unchanged, but the speed tolerance means you are only\n" +
             "  marked down above the limit plus the tolerance on DriveScorer\n\n" +
             "  Switch back with Tune Vehicle: Campus Shuttle before recording runs\n" +
@@ -89,7 +121,7 @@ public static class VehicleTuning
             "  dynamics and should not be presented as such");
     }
 
-    [MenuItem("NCAT/Tune Vehicle: Campus Shuttle", false, 34)]
+    [MenuItem("NCAT/Tune Vehicle: Campus Shuttle", false, 35)]
     public static void Shuttle()
     {
         VehicleController v = Find();
@@ -120,6 +152,16 @@ public static class VehicleTuning
         v.maxSteerAngle = 38f;         // was 35
         v.steerRate = 140f;            // was 90 deg/s, which felt like turning a ship
         v.maxLateralG = 0.45f;         // was 0.35, a lighter body with a lower roll centre
+
+        // Written out here even though the arcade preset sets them too, because a
+        // preset that only writes the fields it wants to change is not a preset: it
+        // leaves whatever the last one did, and the two modes stop being comparable.
+        // A heavy vehicle wants more of this than a light one, so it keeps a little
+        // more lock at speed than arcade does but gets there sooner.
+        v.speedSensitiveSteering = true;
+        v.fullSteerBelowMph = 6f;
+        v.reducedSteerAboveMph = 22f;
+        v.highSpeedSteerFraction = 0.6f;
 
         v.governedTopSpeedMph = 45f;   // was 65, and nothing on campus needs more
 

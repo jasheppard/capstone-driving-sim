@@ -31,7 +31,7 @@ public static class SpeedometerSetup
     const float StartAngle = 130f;
     const float Sweep = 260f;
 
-    [MenuItem("NCAT/Set Up Speedometer", false, 36)]
+    [MenuItem("NCAT/Set Up Speedometer", false, 50)]
     public static void SetUp()
     {
         Sprite face = GetOrCreateSprite(FacePath, DrawFace, 256);

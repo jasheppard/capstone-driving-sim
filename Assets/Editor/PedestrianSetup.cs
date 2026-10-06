@@ -31,7 +31,7 @@ public static class PedestrianSetup
     const float FallbackWalk = 1.45f;
     const float FallbackRun = 4.4f;
 
-    [MenuItem("NCAT/Set Up Pedestrians", false, 20)]
+    [MenuItem("NCAT/Set Up Pedestrians", false, 58)]
     public static void SetUpPedestrians()
     {
         AnimationClip idle = FindClip(IdleKeyword);

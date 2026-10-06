@@ -45,10 +45,18 @@ public class TrafficLightVisual : MonoBehaviour
 
     void OnEnable()
     {
-        if (redLamp == null) Build();
+        if (redLamp == null) Rebuild();
     }
 
-    void Build()
+    /// <summary>
+    /// Builds or re-places the lamps at the current settings.
+    ///
+    /// Public because a prefab builder has to set lampOrigin AFTER adding this
+    /// component — AddComponent runs OnEnable immediately, with the default values
+    /// still in place — and then needs the lamps moved to where its own model
+    /// actually has lenses.
+    /// </summary>
+    public void Rebuild()
     {
         // Top to bottom is red, amber, green, so the lamps are created upward from
         // green at the origin.
@@ -56,14 +64,30 @@ public class TrafficLightVisual : MonoBehaviour
         amberLamp = Lamp("LampAmber", 1);
         redLamp = Lamp("LampRed", 2);
 
-        GameObject glowGO = new GameObject("Glow");
+        // Found before it is created, or every script reload adds another one.
+        //
+        // This ran on every domain reload, because the field holding the light is not
+        // serialised and so comes back null each time. Each run left behind another
+        // point light, all in the same spot, all lit. A signal that had been open in
+        // the editor for a while was quietly carrying a stack of them.
+        Transform existing = transform.Find("Glow");
+
+        GameObject glowGO = existing != null ? existing.gameObject : new GameObject("Glow");
         glowGO.transform.SetParent(transform, false);
         glowGO.transform.localPosition = lampOrigin + Vector3.up * lampSpacing;
 
-        glow = glowGO.AddComponent<Light>();
+        glow = glowGO.GetComponent<Light>();
+        if (glow == null) glow = glowGO.AddComponent<Light>();
+
         glow.type = LightType.Point;
         glow.range = glowRange;
         glow.intensity = 2f;
+    }
+
+    /// <summary>Keeps the lamps where the Inspector says they are.</summary>
+    void OnValidate()
+    {
+        if (redLamp != null) Rebuild();
     }
 
     Renderer Lamp(string name, int step)

@@ -37,12 +37,22 @@ public static class SignPlacer
     const string StopSignPrefab = "StopSign";
     const string TrafficLightPrefab = "TrafficLight";
 
+    /// <summary>
+    /// The mast arm signal, preferred over the old pedestal one when it exists.
+    ///
+    /// A pedestal signal at the kerb is only readable once you are nearly past it. The
+    /// mast arm puts the head out over the lane, which is where a driver is already
+    /// looking and the reason American junctions are built this way.
+    /// </summary>
+    const string MastSignalPrefab = "TrafficLightMast";
+    const string ShuttleStopPrefab = "ShuttleStop";
+
     /// <summary>How far to the right of the waypoint a sign stands, in metres.</summary>
     const float KerbOffset = 4.5f;
     const float RaycastUp = 30f;
     const float RaycastDown = 80f;
 
-    [MenuItem("NCAT/Route/4. Place Signs", false, 24)]
+    [MenuItem("NCAT/Route/4. Place Signs", false, 108)]
     public static void Place()
     {
         GameObject routeGO = GameObject.Find("Route");
@@ -55,9 +65,11 @@ public static class SignPlacer
         }
 
         GameObject stopPrefab = FindPrefab(StopSignPrefab);
-        GameObject lightPrefab = FindPrefab(TrafficLightPrefab);
+        GameObject lightPrefab = FindPrefab(MastSignalPrefab);
+        if (lightPrefab == null) lightPrefab = FindPrefab(TrafficLightPrefab);
+        GameObject shuttlePrefab = FindPrefab(ShuttleStopPrefab);
 
-        if (stopPrefab == null && lightPrefab == null)
+        if (stopPrefab == null && lightPrefab == null && shuttlePrefab == null)
         {
             Debug.LogError(
                 "[SignPlacer] No sign prefabs found.\n" +
@@ -89,7 +101,7 @@ public static class SignPlacer
             if (waypoint != null) waypoints.Add(waypoint);
         }
 
-        int stops = 0, lights = 0, floating = 0;
+        int stops = 0, lights = 0, shuttles = 0, floating = 0;
 
         for (int i = 0; i < waypoints.Count; i++)
         {
@@ -97,9 +109,10 @@ public static class SignPlacer
 
             bool isStop = waypoint.kind == RouteWaypoint.Kind.StopSign;
             bool isLight = waypoint.kind == RouteWaypoint.Kind.TrafficSignal;
-            if (!isStop && !isLight) continue;
+            bool isShuttle = waypoint.kind == RouteWaypoint.Kind.BusStop;
+            if (!isStop && !isLight && !isShuttle) continue;
 
-            GameObject prefab = isStop ? stopPrefab : lightPrefab;
+            GameObject prefab = isStop ? stopPrefab : isLight ? lightPrefab : shuttlePrefab;
             if (prefab == null) continue;
 
             // The direction the driver arrives from. The first waypoint has no
@@ -121,7 +134,7 @@ public static class SignPlacer
 
             // Facing back down the road at whoever is coming.
             sign.transform.rotation = Quaternion.LookRotation(-approach, Vector3.up);
-            sign.name = (isStop ? "StopSign_" : "TrafficLight_") + i;
+            sign.name = (isStop ? "StopSign_" : isLight ? "TrafficLight_" : "ShuttleStop_") + i;
 
             if (isLight)
             {
@@ -130,6 +143,10 @@ public static class SignPlacer
 
                 visual.waypoint = waypoint;
                 lights++;
+            }
+            else if (isShuttle)
+            {
+                shuttles++;
             }
             else
             {
@@ -147,7 +164,8 @@ public static class SignPlacer
 
         Debug.Log(
             "Signs placed.\n" +
-            "  " + stops + " stop signs, " + lights + " traffic lights\n" +
+            "  " + stops + " stop signs, " + lights + " traffic lights, " +
+            shuttles + " shuttle stops\n" +
             "  Each faces the driver and sits " + KerbOffset + " m to the right" +
             warning + "\n" +
             "Save the scene (Ctrl+S).");

@@ -23,7 +23,7 @@ using System.Text;
 /// </summary>
 public static class SetUpEverything
 {
-    [MenuItem("NCAT/SET UP EVERYTHING", false, 0)]
+    [MenuItem("NCAT/SET UP EVERYTHING", false, 1)]
     public static void Run()
     {
         StringBuilder report = new StringBuilder();

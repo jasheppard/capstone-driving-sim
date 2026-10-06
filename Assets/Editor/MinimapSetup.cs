@@ -27,7 +27,7 @@ public static class MinimapSetup
     const float CameraHeight = 250f;
     const int TextureSize = 512;
 
-    [MenuItem("NCAT/Set Up Minimap", false, 35)]
+    [MenuItem("NCAT/Set Up Minimap", false, 51)]
     public static void SetUpMinimap()
     {
         Sprite circle = GetOrCreateSprite(CirclePath, DrawCircle);

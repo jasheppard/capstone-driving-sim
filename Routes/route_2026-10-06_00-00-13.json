@@ -1,0 +1,5 @@
+{
+  "waypoints": [
+    { "kind": "Checkpoint", "x": 55.300, "y": -7.700, "z": -1.130, "radius": 12.000, "speedLimitMph": 45.000 }
+  ]
+}

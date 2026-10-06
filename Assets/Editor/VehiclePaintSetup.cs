@@ -18,16 +18,16 @@ public static class VehiclePaintSetup
     const string CarName = "PlayerCar";
     const string ModelChildName = "Model";
 
-    [MenuItem("NCAT/Paint Vehicle - Black", false, 7)]
+    [MenuItem("NCAT/Paint Vehicle - Black", false, 29)]
     public static void PaintBlack() { Paint(new Color(0.045f, 0.045f, 0.055f)); }
 
-    [MenuItem("NCAT/Paint Vehicle - Silver", false, 8)]
+    [MenuItem("NCAT/Paint Vehicle - Silver", false, 30)]
     public static void PaintSilver() { Paint(new Color(0.62f, 0.64f, 0.67f)); }
 
-    [MenuItem("NCAT/Paint Vehicle - Aggie Blue", false, 9)]
+    [MenuItem("NCAT/Paint Vehicle - Aggie Blue", false, 28)]
     public static void PaintAggieBlue() { Paint(new Color(0.04f, 0.19f, 0.42f)); }
 
-    [MenuItem("NCAT/Paint Vehicle - School Bus Yellow", false, 10)]
+    [MenuItem("NCAT/Paint Vehicle - School Bus Yellow", false, 31)]
     public static void PaintBusYellow() { Paint(new Color(0.95f, 0.68f, 0.05f)); }
 
     static void Paint(Color bodyColour)

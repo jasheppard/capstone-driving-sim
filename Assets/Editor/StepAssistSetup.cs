@@ -7,7 +7,7 @@ using UnityEditor.SceneManagement;
 /// </summary>
 public static class StepAssistSetup
 {
-    [MenuItem("NCAT/Set Up Step Assist", false, 37)]
+    [MenuItem("NCAT/Set Up Step Assist", false, 54)]
     public static void SetUp()
     {
         GameObject car = GameObject.Find("PlayerCar");

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 /// <summary>
@@ -48,6 +48,13 @@ public class PedestrianSpawner : MonoBehaviour
     [Header("Pacing")]
     [Tooltip("Seconds between spawn attempts, so a burst does not stall a frame.")]
     public float spawnInterval = 0.4f;
+
+    [Header("Sidewalks")]
+    [Tooltip("Spawn onto the walkways laid out in the scene rather than anywhere " +
+             "the ground happens to be. Falls back to open ground automatically " +
+             "when no path is in range, so this is safe to leave on before any " +
+             "paths exist.")]
+    public bool useSidewalks = true;
 
     readonly List<PedestrianController> active = new List<PedestrianController>();
     float nextSpawnTime;
@@ -120,6 +127,7 @@ public class PedestrianSpawner : MonoBehaviour
         PedestrianController pedestrian = instance.GetComponent<PedestrianController>();
         if (pedestrian == null) pedestrian = instance.AddComponent<PedestrianController>();
 
+        AssignPath(pedestrian);
         active.Add(pedestrian);
     }
 
@@ -175,7 +183,50 @@ public class PedestrianSpawner : MonoBehaviour
         if (cc != null) cc.enabled = true;
 
         pedestrian.ResetState(Random.Range(0f, 360f));
+        AssignPath(pedestrian);
     }
+
+    /// <summary>
+    /// Puts a pedestrian on the nearest walkway, if there is one near enough.
+    ///
+    /// Nearest rather than random, because a pedestrian dropped on the far side of
+    /// campus walks the whole way back and is despawned before it arrives. The one
+    /// under their feet is the one they should be on.
+    /// </summary>
+    void AssignPath(PedestrianController pedestrian)
+    {
+        if (!useSidewalks || pedestrian == null) return;
+
+        SidewalkPath best = null;
+        int bestNode = -1;
+        float bestDistance = float.PositiveInfinity;
+
+        for (int i = 0; i < SidewalkPath.All.Count; i++)
+        {
+            SidewalkPath path = SidewalkPath.All[i];
+            if (path == null || path.Count < 2) continue;
+
+            float distance;
+            int node = path.NearestNode(pedestrian.transform.position, out distance);
+
+            if (node < 0 || distance >= bestDistance) continue;
+
+            best = path;
+            bestNode = node;
+            bestDistance = distance;
+        }
+
+        // Far from any walkway, leave them wandering. That is the right answer for
+        // a lawn or a plaza, and it means this does nothing at all until the first
+        // path is laid out.
+        if (best == null || bestDistance > sidewalkSnapDistance) return;
+
+        pedestrian.FollowPath(best, bestNode);
+    }
+
+    [Tooltip("How close a spawn point has to be to a walkway for the pedestrian to " +
+             "be put on it, in metres. Beyond this they wander as before.")]
+    public float sidewalkSnapDistance = 18f;
 
     void OnDrawGizmosSelected()
     {

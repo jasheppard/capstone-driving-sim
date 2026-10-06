@@ -40,7 +40,7 @@ public static class DebriefSetup
 
     const float ElementsTop = 210f;
 
-    [MenuItem("NCAT/Set Up Drive Debrief", false, 38)]
+    [MenuItem("NCAT/Set Up Drive Debrief", false, 56)]
     public static void SetUp()
     {
         GameObject old = GameObject.Find(CanvasName);

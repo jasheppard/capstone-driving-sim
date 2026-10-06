@@ -36,9 +36,24 @@ public class RouteRecorder : MonoBehaviour
     [Tooltip("Folder for the route files, relative to the project folder.")]
     public string outputFolder = "Routes";
 
+    [Header("Automatic dropping")]
+    [Tooltip("Drop a checkpoint every so many metres while you drive, without you " +
+             "pressing anything. Leave this on.\n\n" +
+             "Pressing a key per waypoint is the right tool for putting a stop sign on " +
+             "a particular corner. It is the wrong one for describing where a road " +
+             "goes, which needs a point every fifteen metres: a kilometre of campus is " +
+             "about seventy presses while steering, and in practice two or three get " +
+             "dropped. The route then reads as a straight line across three buildings, " +
+             "and everything built on it is wrong.")]
+    public bool autoDrop = true;
+
+    [Tooltip("Metres between automatic checkpoints. Fifteen describes a corner well " +
+             "without burying the route in points.")]
+    public float autoSpacing = 15f;
+
     [Header("Defaults for new waypoints")]
     public float defaultRadius = 12f;
-    public float defaultSpeedLimitMph = 20f;
+    public float defaultSpeedLimitMph = 45f;
 
     [Header("Keys")]
     public KeyCode dropKey = KeyCode.B;
@@ -61,6 +76,9 @@ public class RouteRecorder : MonoBehaviour
     RouteWaypoint.Kind nextKind = RouteWaypoint.Kind.Checkpoint;
     string savedPath;
 
+    Vector3 lastAutoPosition;
+    bool hasAutoPosition;
+
     void Start()
     {
         if (!recording)
@@ -71,7 +89,11 @@ public class RouteRecorder : MonoBehaviour
         }
 
         Debug.Log("[RouteRecorder] Recording armed.\n" +
-                  "  B drops a waypoint, N changes its kind, Backspace undoes.\n" +
+                  (autoDrop
+                      ? "  Automatic: a checkpoint every " + autoSpacing.ToString("F0") +
+                        " m. Just drive the route.\n"
+                      : "  Manual only: press B at every waypoint.\n") +
+                  "  B drops one by hand, N changes its kind, Backspace undoes.\n" +
                   "  Saves automatically when you stop playing.");
 
         UpdateStatus();
@@ -101,26 +123,73 @@ public class RouteRecorder : MonoBehaviour
         if (cycle) Cycle();
         if (undo) Undo();
         if (save) Save();
+
+        if (autoDrop) AutoDrop();
+    }
+
+    /// <summary>
+    /// Drops a checkpoint once the bus has covered another stretch of road.
+    ///
+    /// Measured flat, so settling onto the terrain and driving up a slope do not
+    /// count as distance travelled. Distance rather than time, so sitting at a red
+    /// light does not pile up a stack of waypoints on one spot, and crawling through
+    /// a junction still gets the points the corner needs.
+    /// </summary>
+    void AutoDrop()
+    {
+        Vector3 here = transform.position;
+
+        if (!hasAutoPosition)
+        {
+            // Where the recording starts is itself the start of the route.
+            hasAutoPosition = true;
+            lastAutoPosition = here;
+            Drop(RouteWaypoint.Kind.Checkpoint, false);
+            return;
+        }
+
+        Vector2 from = new Vector2(lastAutoPosition.x, lastAutoPosition.z);
+        Vector2 to = new Vector2(here.x, here.z);
+
+        if (Vector2.Distance(from, to) < Mathf.Max(1f, autoSpacing)) return;
+
+        lastAutoPosition = here;
+        Drop(RouteWaypoint.Kind.Checkpoint, false);
     }
 
     void Drop()
     {
+        Drop(nextKind, true);
+    }
+
+    void Drop(RouteWaypoint.Kind kind, bool byHand)
+    {
         Recorded point = new Recorded
         {
             position = transform.position,
-            kind = nextKind,
+            kind = kind,
             radius = defaultRadius,
             speedLimitMph = defaultSpeedLimitMph,
         };
 
         points.Add(point);
 
-        Debug.Log("[RouteRecorder] " + points.Count + ": " + nextKind + " at " +
-                  point.position.ToString("F1"));
+        // Every automatic drop would be seventy lines of console for one lap, so
+        // they are reported in tens. Anything placed by hand is worth a line.
+        if (byHand)
+        {
+            Debug.Log("[RouteRecorder] " + points.Count + ": " + kind + " at " +
+                      point.position.ToString("F1"));
+        }
+        else if (points.Count % 10 == 0)
+        {
+            Debug.Log("[RouteRecorder] " + points.Count + " waypoints recorded.");
+        }
 
         // A finish point ends the route, so go back to plain checkpoints rather
         // than dropping a second finish by accident.
-        if (nextKind == RouteWaypoint.Kind.Finish) nextKind = RouteWaypoint.Kind.Checkpoint;
+        if (byHand && kind == RouteWaypoint.Kind.Finish)
+            nextKind = RouteWaypoint.Kind.Checkpoint;
 
         UpdateStatus();
     }
@@ -148,6 +217,7 @@ public class RouteRecorder : MonoBehaviour
         statusLabel.enabled = true;
         statusLabel.text =
             "REC  " + points.Count + " waypoint" + (points.Count == 1 ? "" : "s") +
+            (autoDrop ? "   AUTO every " + autoSpacing.ToString("F0") + " m" : "") +
             "     next: " + nextKind.ToString().ToUpperInvariant() +
             "     [B] drop   [N] kind   [Backspace] undo";
     }

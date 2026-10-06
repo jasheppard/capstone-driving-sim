@@ -12,7 +12,7 @@ public static class TelemetrySetup
     const string CarName = "PlayerCar";
     const string DataFolder = "TelemetryData";
 
-    [MenuItem("NCAT/Set Up Telemetry Logging", false, 50)]
+    [MenuItem("NCAT/Set Up Telemetry Logging", false, 60)]
     public static void SetUpLogging()
     {
         GameObject car = GameObject.Find(CarName);
@@ -47,7 +47,7 @@ public static class TelemetrySetup
             "Remember to save the scene (Ctrl+S), or the component will not be there next time.");
     }
 
-    [MenuItem("NCAT/Open Telemetry Folder", false, 51)]
+    [MenuItem("NCAT/Open Telemetry Folder", false, 184)]
     public static void OpenFolder()
     {
         string root = Path.GetDirectoryName(Application.dataPath);

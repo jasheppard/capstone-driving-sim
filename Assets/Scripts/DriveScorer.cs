@@ -38,7 +38,7 @@ public class DriveScorer : MonoBehaviour
 {
     [Header("What counts as unsafe")]
     [Tooltip("Campus speed limit, mph. Overwritten per segment by the route.")]
-    public float speedLimitMph = 20f;
+    public float speedLimitMph = 45f;
 
     [Tooltip("How far over the limit is tolerated before it counts against you, mph. " +
              "Real examiners do not mark a driver down for drifting a couple over; " +
@@ -104,6 +104,20 @@ public class DriveScorer : MonoBehaviour
              "0.32 g: firm driving, not a slide.")]
     [Range(0.4f, 0.95f)] public float aggressiveFraction = 0.7f;
 
+    [Header("What to score")]
+    [Tooltip("Score how gently each stop was made, as part of the NCDOT Stopping " +
+             "element. Off, a hard brake is still measured, still written to the " +
+             "telemetry CSV, and still counted in the drive report; it just is not " +
+             "a violation against the rubric and does not flash on the HUD.\n\n" +
+             "Off by default. Smoothness is the one thing in here a driver cannot " +
+             "practise honestly on photogrammetry terrain: the scan has kerbs, " +
+             "speed humps and mesh seams that are not really there, the ground ray " +
+             "steps between tiles, and braking firmly to avoid a pedestrian who " +
+             "walked out is correct driving that this would mark down. Whether the " +
+             "bus stopped at all is still scored, by stop signs, signals and bus " +
+             "stops, and those are the parts the road test actually fails you on.")]
+    public bool scoreStopSmoothness = false;
+
     [Header("Event debouncing")]
     [Tooltip("Seconds before the same kind of event can be counted again. One long " +
              "brake application is one event, not fifty.")]
@@ -136,6 +150,13 @@ public class DriveScorer : MonoBehaviour
     public int Launches { get; private set; }
     public int Turns { get; private set; }
     public int UnsignalledTurns { get; private set; }
+
+    /// <summary>
+    /// True while the drive is still being scored, false once it has ended.
+    /// Read by the on-screen timer so the clock stops with the drive rather than
+    /// running on behind the debrief.
+    /// </summary>
+    public bool DriveRunning { get { return running; } }
 
     public float BrakesPerMinute { get { return HardBrakes / Mathf.Max(DurationSeconds / 60f, 1f / 6f); } }
     public float CornersPerMinute { get { return HardCorners / Mathf.Max(DurationSeconds / 60f, 1f / 6f); } }
@@ -398,7 +419,11 @@ public class DriveScorer : MonoBehaviour
 
         braking = false;
         BrakeApplications++;
-        Report(NcElement.Stopping, brakingWasHarsh, "Harsh stop");
+
+        // The application is counted either way, so the drive report and the
+        // telemetry still describe how it was braked. Only the grade is skipped.
+        if (scoreStopSmoothness)
+            Report(NcElement.Stopping, brakingWasHarsh, "Harsh stop");
     }
 
     /// <summary>
@@ -517,7 +542,7 @@ public class DriveScorer : MonoBehaviour
 
         foreach (MonoBehaviour mb in FindObjectsOfType<MonoBehaviour>())
         {
-            if (mb == null || mb.GetType().Name != "PedestrianController") continue;
+            if (mb == null || !RouteRunner.IsPedestrian(mb)) continue;
             pedestrians.Add(mb.transform);
         }
     }
@@ -540,7 +565,7 @@ public class DriveScorer : MonoBehaviour
 
         foreach (MonoBehaviour mb in collision.gameObject.GetComponentsInParent<MonoBehaviour>())
         {
-            if (mb != null && mb.GetType().Name == "PedestrianController") hitSomeone = true;
+            if (mb != null && RouteRunner.IsPedestrian(mb)) hitSomeone = true;
         }
 
         if (hitSomeone)
@@ -580,7 +605,8 @@ public class DriveScorer : MonoBehaviour
             Report(NcElement.SafeSpeed, exceededThisWindow, "Over the limit");
 
         // An open brake application at the moment the drive ends was still a stop.
-        if (braking) Report(NcElement.Stopping, brakingWasHarsh, "Harsh stop");
+        if (braking && scoreStopSmoothness)
+            Report(NcElement.Stopping, brakingWasHarsh, "Harsh stop");
 
         // Stopping the logger here flushes its CSV, so the written data and this
         // report describe exactly the same drive.

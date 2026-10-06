@@ -20,7 +20,7 @@ public static class RouteClear
     const string RouteName = "Route";
     const string OutputFolder = "Routes";
 
-    [MenuItem("NCAT/Route/Clear Route", false, 90)]
+    [MenuItem("NCAT/Route/Clear Route", false, 122)]
     public static void Clear()
     {
         GameObject route = GameObject.Find(RouteName);
@@ -96,7 +96,7 @@ public static class RouteClear
     /// unloaded terrain: there is no need to re-drive anything, only to place them
     /// again once the tiles are in.
     /// </summary>
-    [MenuItem("NCAT/Route/Clear Placed Signs", false, 91)]
+    [MenuItem("NCAT/Route/Clear Placed Signs", false, 121)]
     public static void ClearSigns()
     {
         GameObject route = GameObject.Find(RouteName);
@@ -126,7 +126,7 @@ public static class RouteClear
     /// can drive through walls is not something to have on by accident. Adding it is
     /// a decision; the component still has to be toggled with G in play mode.
     /// </summary>
-    [MenuItem("NCAT/Route/Add Ghost Drive", false, 92)]
+    [MenuItem("NCAT/Route/Add Ghost Drive", false, 111)]
     public static void AddGhostDrive()
     {
         GameObject car = GameObject.Find("PlayerCar");

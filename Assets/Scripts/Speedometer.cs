@@ -38,7 +38,7 @@ public class Speedometer : MonoBehaviour
 
     [Header("Speed limit")]
     [Tooltip("Campus limit in mph. The readout changes colour above it.")]
-    public float speedLimitMph = 20f;
+    public float speedLimitMph = 45f;
 
     [Tooltip("How far over the limit before the readout goes red rather than amber.")]
     public float overLimitMargin = 5f;

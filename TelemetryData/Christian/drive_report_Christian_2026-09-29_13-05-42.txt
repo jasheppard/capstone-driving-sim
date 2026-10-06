@@ -1,0 +1,41 @@
+NC A&T Campus Driving Safety Simulator: Road Skills Test
+Driver: Christian
+Generated Tuesday, September 29, 2026 1:05 PM
+--------------------------------------------------------------
+
+RESULT   FAIL   20%   (1 of 7 elements passed, 7 of 9 assessed)
+Failed a critical element: stop signs.
+
+The nine elements
+  Stop signs                  FAIL    0%  0 of 1
+  Yielding to pedestrians     FAIL    0%  0 of 1
+  Safe speed for conditions   FAIL    0%  0 of 5
+  Stopping                    FAIL   43%  3 of 7
+  Starting                    pass  100%  3 of 3
+  Approaching intersections   not assessed
+  Traffic signals             not assessed
+  Turning                     FAIL    0%  0 of 2
+  Turn signals and horn       FAIL    0%  0 of 2
+
+Drive
+  Duration              0m 49s
+  Distance              462 m
+  Average speed         23.4 mph
+  Top speed             60.3 mph
+
+Events
+  Time over 25 mph      19 s  (38% of the drive)
+  Brake applications    6, of which harsh 6  (7.3/min)
+  Standing starts       3
+  Turns                 2, unsignalled 2
+  Harsh cornering       5  (6.1/min)
+  Pedestrian near miss  1
+  Collisions            0
+
+Peaks
+  Hardest braking       1.93 g
+  Peak cornering load   1.49 g
+  Closest pedestrian    2.5 m
+
+Element thresholds: 0.6778796 g braking, 0.61425 g starting, 1.4 g cornering, 2.5 m near miss, 10 s safe-speed window.
+The elements follow the NCDOT road skills list. Which driving behaviour counts as failing each one is a rubric we defined.
